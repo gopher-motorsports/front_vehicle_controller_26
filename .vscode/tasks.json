@@ -1,0 +1,103 @@
+{
+    "version": "2.0.0",
+    "windows": {
+        "options": {
+            "shell": {
+                "executable": "cmd.exe",
+                "args": ["/d", "/c"]
+            }
+        }
+    },
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "Build GopherCAN",
+            "command": "python",
+            "args": [
+                "autogen.py",
+                "configs/go4-25.yaml"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/../gophercan-lib/network_autogen"
+            },
+            "problemMatcher": []
+        },
+        {
+            "type": "shell",
+            "label": "Build Gopher Sense",
+            "command": "python",
+            "args": [
+                "gsense_auto_gen.py",
+                "./../${workspaceFolderBasename}/${workspaceFolderBasename}_config.yaml"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/../Gopher_Sense"
+            },
+            "problemMatcher": []
+        },
+        {
+            "type": "shell",
+            "label": "CubeProg: Flash project (SWD)",
+            "command": "STM32_Programmer_CLI",
+            "args": [
+                "--connect",
+                "port=swd",
+                "--download",
+                "${command:cmake.launchTargetPath}",
+                // Let CMake extension decide executable: "${command:cmake.launchTargetPath}",
+                "-hardRst", // Hardware reset - if rst pin is connected
+                "-rst", // Software reset (backup)
+                "--start" // Start execution
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Build + Flash",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "CMake: clean rebuild",
+                "CubeProg: Flash project (SWD)",
+            ]
+        },
+                {
+            "type": "cmake",
+            "label": "CMake: clean rebuild",
+            "command": "cleanRebuild",
+            "targets": [
+                "all"
+            ],
+            "preset": "${command:cmake.activeBuildPresetName}",
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template clean rebuild task"
+        },
+        {
+            "label": "Clean Rebuild",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Build GopherCAN",
+                "Build Gopher Sense",
+                "CMake: clean rebuild"
+            ],
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Build libraies and Clean Rebuild"
+        },
+        {
+            "type": "shell",
+            "label": "CubeProg: List all available communication interfaces",
+            "command": "STM32_Programmer_CLI",
+            "args": ["--list"],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        }
+    ]
+}
