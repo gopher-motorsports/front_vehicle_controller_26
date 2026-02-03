@@ -79,8 +79,9 @@ void init_error(void)
 }
 
 
-
-
-
-
-// merge conflict just for you
+// Dash Light Functionality:
+// If AMS("Accumulator management system, so BMS :/") fault --> BMS light goes on
+// If IMD Fault --> IMD Fault Goes on
+void set_dash_lights(){
+	
+}
