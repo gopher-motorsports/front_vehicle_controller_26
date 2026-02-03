@@ -77,3 +77,11 @@ void init_error(void)
 		HAL_Delay(250);
 	}
 }
+
+
+// Dash Light Functionality:
+// If AMS("Accumulator management system, so BMS :/") fault --> BMS light goes on
+// If IMD Fault --> IMD Fault Goes on
+void set_dash_lights(){
+	
+}
