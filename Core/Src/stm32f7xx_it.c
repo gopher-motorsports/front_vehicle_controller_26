@@ -95,9 +95,18 @@ void HardFault_Handler(void)
   while (1)
   {
     /* USER CODE BEGIN W1_HardFault_IRQn 0 */
-    // blink the hardfault led every 0.5 seconds to indicated that the board is in fault
-    // same logic as a heartbeat led with a static variable and HAL_GetTick()
+    static uint32_t last_tick=0;
+    static bool first_run = 1;
+    uint32_t current_tick = HAL_GetTick();
     
+    //Toggles every 250ms
+    if(current_tick - last_tick >=250 || first_run ){
+      HAL_GPIO_TogglePin(HARD_FAULT_LED_GPIO_PORT, HARD_FAULT_LED_PIN);
+      last_tick =  current_tick;
+      if(first_run){
+        first_run=0;
+      }
+    }
     /* USER CODE END W1_HardFault_IRQn 0 */
   }
 }
