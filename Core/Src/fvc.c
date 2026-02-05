@@ -77,3 +77,10 @@ void init_error(void)
 		HAL_Delay(250);
 	}
 }
+
+
+
+
+
+
+// merge conflict just for you
