@@ -1,4 +1,5 @@
 #include "fvc.h"
+#include "conditions_and_utils.h"
 
 // the HAL_CAN struct. This example only works for a single CAN bus
 CAN_HandleTypeDef* CAN_CARSIDE;
@@ -38,7 +39,7 @@ void can_buffer_handling_loop()
 // called every 1ms
 void main_loop()
 {
-
+	LED_task();
 }
 
 // Dash Light Functionality:
