@@ -47,9 +47,9 @@ float calculate_dc_current_limit(){
 	// BSPD Tractive Brake Fault tripped(if this lasts for .5s car the BSPD fault is tripped and HV is shut off)
 	if(bspdTractiveSystemBrakingFault_state.data){
 		if(inputInverterVoltage_V.data != 0)
-			dc_current_limit_A = BSPD_POWER_LIMIT / inputInverterVoltage_V.data / TOTAL_INVERTERS; //stay below 5 kW I = P/V
+			dc_current_limit_A = BSPD_POWER_LIMIT / inputInverterVoltage_V.data; //stay below 5 kW I = P/V
 	} else {
-		dc_current_limit_A = MAX_DC_CURRENT_LIMIT;
+		dc_current_limit_A = DC_CURRENT_LIMIT_AT_MAX_PACK_VOLTAGE_A;
 	}
 	return dc_current_limit_A;
 }
@@ -95,4 +95,9 @@ bool is_vehicle_faulting(){
 	fault_tripped |= appsBrakeLatched_state;
 
 	return fault_tripped;
+}
+
+
+uint8_t predrive_conditions_met(){
+	return (brakePressureFront_psi.data >= PREDRIVE_BRAKE_THRESH_psi) && (PREDRIVE_BUTTON_PARAM.data == PRESSED)  && (inputInverterVoltage_V.data >= TS_ON_THRESHOLD_VOLTAGE_V);
 }

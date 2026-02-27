@@ -6,6 +6,12 @@ CAN_HandleTypeDef* CAN_CARSIDE;
 CAN_HandleTypeDef* CAN_FRONT_INVERTERS;
 CAN_HandleTypeDef* CAN_REAR_INVERTERS;
 
+// Inverter State Machine Defines:
+VEHICLE_STATE_t vehicle_state;
+uint32_t preDriveTimer_ms;
+float ac_currentLimit_Apk;
+float dc_currentlimit_A;
+
 // Init FVC
 // What needs to happen on FVC startup 
 void init_fvc(CAN_HandleTypeDef* BUS_1, CAN_HandleTypeDef* BUS_2, CAN_HandleTypeDef* BUS_3){
@@ -40,4 +46,71 @@ void can_buffer_handling_loop()
 void main_loop()
 {
 	LED_task();
+}
+
+void determine_current_limits(){
+	ac_currentLimit_Apk = is_vehicle_faulting() ? 0 : AC_CURRENT_LIMIT_AT_MAX_PACK_VOLTAGE_Apk;
+	dc_currentlimit_A = calculate_dc_current_limit();
+}
+
+void process_inverter() {
+	if((HAL_GetTick() -  driveEnableInvStatus_state.info.last_rx) > INVERTER_TIMEOUT_ms) {
+		vehicle_state = VEHICLE_NO_COMMS;
+	} else if(faultCode.data & INVERTER_UV_FAULT) {
+		vehicle_state = VEHICLE_FAULT;
+	}
+
+	determine_current_parameters();
+	if(vehicle_state != VEHICLE_DRIVING) {
+		set_inv_disabled(&ac_currentLimit_Apk, &driveEnable_state.data);
+	}
+
+
+	switch (vehicle_state)
+	{
+	case VEHICLE_NO_COMMS:
+		// check too see we are receiving messages from inverter to validate comms
+		if ((HAL_GetTick() -  driveEnableInvStatus_state.info.last_rx) < INVERTER_TIMEOUT_ms)
+		{
+			vehicle_state = VEHICLE_STANDBY;
+		}
+
+		break;
+
+	case VEHICLE_FAULT:
+		//check to see if fault goes away
+		if(!(faultCode.data & INVERTER_UV_FAULT)) {
+			vehicle_state = VEHICLE_NO_COMMS;
+		}
+
+		break;
+
+	case VEHICLE_STANDBY:
+		// everything is good to go in this state, we are just waiting to enable the RTD button
+		if (predrive_conditions_met()) {
+			vehicle_state = VEHICLE_PREDRIVE;
+			preDriveTimer_ms = 0;
+		}
+
+		break;
+
+	case VEHICLE_PREDRIVE:
+		// buzz the RTD buzzer for the correct amount of time
+		if(++preDriveTimer_ms > PREDRIVE_TIME_ms) {
+			vehicle_state = VEHICLE_DRIVING;
+		}
+
+		break;
+
+	case VEHICLE_DRIVING:
+
+		break;
+
+	default:
+		vehicle_state = VEHICLE_NO_COMMS;
+		break;
+	}
+
+	// send the current request
+	//update_inverter_params(vehicle_state, desiredCurrent_A, maxcurrentLimit_A, 200, vehicle_state == VEHICLE_DRIVING);
 }
