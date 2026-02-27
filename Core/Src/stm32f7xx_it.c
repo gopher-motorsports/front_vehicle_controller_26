@@ -101,7 +101,7 @@ void HardFault_Handler(void)
     
     //Toggles every 250ms
     if(current_tick - last_tick >=250 || first_run ){
-      HAL_GPIO_TogglePin(HARD_FAULT_LED_GPIO_Port, HARD_FAULT_LED_Pin);
+      HAL_GPIO_TogglePin(Fault_GPIO_Port, Fault_Pin);
       last_tick = current_tick;
       if(first_run){
         first_run = 0;
