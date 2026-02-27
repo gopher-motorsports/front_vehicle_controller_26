@@ -95,6 +95,18 @@ void HardFault_Handler(void)
   while (1)
   {
     /* USER CODE BEGIN W1_HardFault_IRQn 0 */
+    static uint32_t last_tick=0;
+    uint8_t first_run = 1;
+    uint32_t current_tick = HAL_GetTick();
+    
+    //Toggles every 250ms
+    if(current_tick - last_tick >=250 || first_run ){
+      HAL_GPIO_TogglePin(Fault_GPIO_Port, Fault_Pin);
+      last_tick = current_tick;
+      if(first_run){
+        first_run = 0;
+      }
+    }
     /* USER CODE END W1_HardFault_IRQn 0 */
   }
 }
