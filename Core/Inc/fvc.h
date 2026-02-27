@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include "stm32f7xx_hal_can.h"
 
-void init(CAN_HandleTypeDef* hcan_ptr);
+void init_fvc(CAN_HandleTypeDef* BUS_1, CAN_HandleTypeDef* BUS_2, CAN_HandleTypeDef* BUS_3);
 void can_buffer_handling_loop();
 void main_loop();
 
