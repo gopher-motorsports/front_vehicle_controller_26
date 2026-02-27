@@ -9,13 +9,14 @@
              * such as include paths, browse paths, defines, etc.
              */
             "name": "STM32",
+            "compileCommands": "${workspaceFolder}/build/compile_commands.json",
             "configurationProvider": "ms-vscode.cmake-tools",
             "intelliSenseMode": "${default}",
             "includePath": [
                 "${default}",
                 "${workspaceFolder}/Core/Inc",
-                "${workspaceFolder}/Drivers/STM32F4xx_HAL_Driver/Inc",
-                "${workspaceFolder}/Drivers/CMSIS/Device/ST/STM32F4xx/Include",
+                "${workspaceFolder}/Drivers/STM32F7xx_HAL_Driver/Inc",
+                "${workspaceFolder}/Drivers/CMSIS/Device/ST/STM32F7xx/Include",
                 "${workspaceFolder}/Drivers/CMSIS/Core/Include",
                 "${workspaceFolder}/Drivers/CMSIS/RTOS/Template",
                 "${workspaceFolder}/../gophercan-lib"
