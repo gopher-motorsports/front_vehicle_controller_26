@@ -41,28 +41,3 @@ void main_loop()
 {
 	LED_task();
 }
-
-// Dash Light Functionality:
-// If AMS("Accumulator management system, so BMS :/") fault --> BMS light goes on
-// If IMD Fault --> IMD Fault Goes on
-void set_dash_lights(){
-	if(amsFault_state.data) {
-		//If amsFault_state HIGH, PB10 ON
-		HAL_GPIO_WritePin(BMS_Dash_Light_GPIO_Port, BMS_Dash_Light_Pin, GPIO_PIN_SET);
-
-	} else{
-		//If amsFault_state LOW, PB10 OFF
-		HAL_GPIO_WritePin(BMS_Dash_Light_GPIO_Port, BMS_Dash_Light_Pin, GPIO_PIN_RESET);
-	}
-
-	if(imdFault_state.data) {
-		//If imdFault_state HIGH, PB11 ON
-		HAL_GPIO_WritePin(IMD_Dash_Light_GPIO_Port, IMD_Dash_Light_Pin, GPIO_PIN_SET);
-		
-	}else{
-		//If imdFault_state LOW, PB11 OFF
-		HAL_GPIO_WritePin(IMD_Dash_Light_GPIO_Port, IMD_Dash_Light_Pin, GPIO_PIN_RESET);
-	}
-	
-}
-

@@ -9,5 +9,6 @@ void LED_task();
 // Sensor Faults/Limits
 float calculate_dc_current_limit();
 bool is_vehicle_faulting();
+void set_dash_lights();
 
 #endif /* INC_CONDITIONS_AND_UTILS_H_ */
