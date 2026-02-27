@@ -1,6 +1,11 @@
 #include "fvc.h"
 #include "conditions_and_utils.h"
 #include "fvc_software_faults.h"
+
+#include <stdbool.h>
+#include <math.h>
+#include <float.h>
+
 //Heartbeat LED
 void LED_task(){
 	static uint32_t last_led = 0;
