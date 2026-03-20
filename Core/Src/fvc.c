@@ -11,7 +11,8 @@ VEHICLE_STATE_t vehicle_state;
 uint32_t preDriveTimer_ms;
 float ac_currentLimit_Apk;
 float dc_currentlimit_A;
-
+U8_CAN_STRUCT *inv_enable_fbk_statuses[] = {&driveEnableInvStatus_FL_state, &driveEnableInvStatus_FR_state, &driveEnableInvStatus_RL_state, &driveEnableInvStatus_RR_state};
+U8_CAN_STRUCT *inv_fault_codes[] = {&faultCode_FL, &faultCode_FR, &faultCode_RL, &faultCode_RR};
 // Init FVC
 // What needs to happen on FVC startup 
 void init_fvc(CAN_HandleTypeDef* BUS_1, CAN_HandleTypeDef* BUS_2, CAN_HandleTypeDef* BUS_3){
@@ -26,8 +27,6 @@ void init_fvc(CAN_HandleTypeDef* BUS_1, CAN_HandleTypeDef* BUS_2, CAN_HandleType
 
 
 // can_buffer_handling_loop
-// This loop will handle CAN RX software task and CAN TX hardware task. Should be
-// called every 1ms or as often as received messages should be handled
 void can_buffer_handling_loop()
 {
 	// handle each RX message in the buffer
@@ -41,36 +40,65 @@ void can_buffer_handling_loop()
 
 
 // main_loop
-// another loop. This includes logic for sending a CAN command. Designed to be
 // called every 1ms
 void main_loop()
 {
 	LED_task();
 }
 
-void determine_current_limits(){
-	ac_currentLimit_Apk = is_vehicle_faulting() ? 0 : AC_CURRENT_LIMIT_AT_MAX_PACK_VOLTAGE_Apk;
-	dc_currentlimit_A = calculate_dc_current_limit();
+// ======================================== Inverter State Machine Functions ======================================================
+void determine_current_limits(VEHICLE_STATE_t state){
+	if (state != VEHICLE_DRIVING){
+		ac_currentLimit_Apk = 0;
+		dc_currentlimit_A = 0;
+	}
+	else{
+		ac_currentLimit_Apk = is_vehicle_faulting() ? 0 : AC_CURRENT_LIMIT_AT_MAX_PACK_VOLTAGE_Apk;
+		dc_currentlimit_A = calculate_dc_current_limit();
+	}
 }
 
+bool has_inverter_comms(){
+	uint32_t time_stamp = HAL_GetTick();
+	bool has_comms = TRUE;
+
+	for(int i = 0; i < TOTAL_INVERTERS; i++){
+		if (time_stamp - inv_enable_fbk_statuses[i]->info.last_rx >= INVERTER_TIMEOUT_ms)
+			has_comms = FALSE;
+	}
+
+	return has_comms;
+}
+
+bool inverter_fault_active(){
+	bool fault_active = FALSE;
+	for(int i = 0; i < TOTAL_INVERTERS; i++){
+		bool overvoltage_fault = inv_fault_codes[i]->data & INVERTER_OV_FAULT;
+		bool undervoltage_fault = inv_fault_codes[i]->data & INVERTER_UV_FAULT;
+		bool controller_overtemp = inv_fault_codes[i]->data & INVERTER_CTRL_TEMP_FAULT;
+		bool motor_overtemp = inv_fault_codes[i]->data & INVERTER_MOTOR_TEMP_FAULT;
+
+		if(overvoltage_fault || undervoltage_fault || controller_overtemp || motor_overtemp)
+			fault_active = TRUE;
+	} 
+
+	return fault_active;
+}
 void process_inverter() {
-	if((HAL_GetTick() -  driveEnableInvStatus_state.info.last_rx) > INVERTER_TIMEOUT_ms) {
+
+	if (!has_inverter_comms())
 		vehicle_state = VEHICLE_NO_COMMS;
-	} else if(faultCode.data & INVERTER_UV_FAULT) {
+	else if (inverter_fault_active()){
 		vehicle_state = VEHICLE_FAULT;
 	}
 
-	determine_current_parameters();
-	if(vehicle_state != VEHICLE_DRIVING) {
-		set_inv_disabled(&ac_currentLimit_Apk, &driveEnable_state.data);
-	}
-
+	determine_current_parameters(vehicle_state);
 
 	switch (vehicle_state)
 	{
 	case VEHICLE_NO_COMMS:
 		// check too see we are receiving messages from inverter to validate comms
-		if ((HAL_GetTick() -  driveEnableInvStatus_state.info.last_rx) < INVERTER_TIMEOUT_ms)
+		if (has_inverter_comms())
 		{
 			vehicle_state = VEHICLE_STANDBY;
 		}
@@ -79,7 +107,7 @@ void process_inverter() {
 
 	case VEHICLE_FAULT:
 		//check to see if fault goes away
-		if(!(faultCode.data & INVERTER_UV_FAULT)) {
+		if(!inverter_fault_active()) {
 			vehicle_state = VEHICLE_NO_COMMS;
 		}
 

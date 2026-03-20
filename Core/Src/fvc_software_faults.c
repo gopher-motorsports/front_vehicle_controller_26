@@ -82,9 +82,9 @@ SOFTWARE_FAULT* TIMED_SOFTWARE_FAULTS[NUM_OF_TIMED_FAULTS] = {
 };
 
 void update_struct_fault_data(){
-	APPS1_Range_Fault.data = pedalPosition1_mm.data;
-	APPS2_Range_Fault.data = pedalPosition2_mm.data;
+	APPS1_Range_Fault.data = fvcPedalPosition1_mm.data;
+	APPS2_Range_Fault.data = fvcPedalPosition2_mm.data;
 	// BRK_PRESSURE_Range_Fault.data = brakePressureFront_psi.data;
 	// TS_CURRENT_Range_Fault.data = rvcTractiveSystemCurrent_A.data;
-	Pedal_Correlation_Fault.data = fabsf(pedalPosition1_percent.data - pedalPosition2_percent.data);
+	Pedal_Correlation_Fault.data = fabsf(fvcPedalPosition1_percent.data - fvcPedalPosition2_percent.data);
 }

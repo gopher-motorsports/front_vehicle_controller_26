@@ -9,7 +9,7 @@
 // ============================= TRACTIVE SYSTEM PARAMS =============================
 //Limits
 #define TRACTIVE_MARGIN                         
-#define BSPD_POWER_LIMIT		                  4000   // 5 kW limit before a car shutdown is required, 4 kW with buffer
+#define BSPD_POWER_LIMIT		                  4000.0   // 5 kW limit before a car shutdown is required, 4 kW with buffer
 #define DC_CURRENT_LIMIT_AT_MAX_PACK_VOLTAGE_A    125.15 // DC Current Limit at Max Pack Voltage
 #define AC_CURRENT_LIMIT_AT_MAX_PACK_VOLTAGE_Apk  390    // TODO: PLACEHOLDER Replace with better value
 #define MAX_PACK_VOLTAGE                          599.2  
@@ -34,7 +34,7 @@
 #define APPS_BRAKE_PRESS_THRESH_psi  100.0 //6.25% of brake pressure = mechanical breaks engaged
 
 // ============================= INVERTER PARAMS =============================
-#define INVERTER_TIMEOUT_ms     200    // The time after which the vehicle will enter STARTUP
+#define INVERTER_TIMEOUT_ms     2000    // The time after which the vehicle will enter STARTUP
 
 //Ready to Drive
 #define PREDRIVE_BUTTON_PARAM      swButon4_state
@@ -43,10 +43,13 @@
 #define PREDRIVE_TIME_ms           2000 // The length of predrive in ms
 #define PREDRIVE_BRAKE_THRESH_psi  20   // The minimum brake pressure to enter the driving state
 #define TS_ON_THRESHOLD_VOLTAGE_V  60   // Minimum pack voltage to enter driving TODO replace with 420V?
-//Inverter Faults
-#define INVERTER_NO_FAULT       0x000  // The data of the fault code when there is no inverter fault
-#define INVERTER_UV_FAULT       0x02   // Undervoltage fault code for the inverter, have to set threshold via DTI tool
 
+//Inverter Faults
+#define INVERTER_NO_FAULT         0x00  // The data of the fault code when there is no inverter fault
+#define INVERTER_OV_FAULT	  	  0x01  // Inverter Controller Overtemp
+#define INVERTER_UV_FAULT         0x02  // Undervoltage fault code for the inverter, have to set threshold via DTI tool
+#define INVERTER_CTRL_TEMP_FAULT  0x04  // Inverter Controller Overtemp of user setpoint
+#define INVERTER_MOTOR_TEMP_FAULT 0x05	// Inverter Motor Overtemp of user setpoint
 //Inverter Variables:
 typedef enum
 {

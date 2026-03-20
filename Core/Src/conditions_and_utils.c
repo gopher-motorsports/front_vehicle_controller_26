@@ -41,13 +41,26 @@ void set_dash_lights(){
 }
 // ==============================================================================================
 
+int16_t max4Ints(int16_t a, int16_t b, int16_t c, int16_t d) {
+    int16_t max = a;
+    if (b > max) max = b;
+    if (c > max) max = c;
+    if (d > max) max = d;
+    return max;
+}
+
 // DC Current Limit Calculation
 float calculate_dc_current_limit(){
 	float dc_current_limit_A = 0;
+
 	// BSPD Tractive Brake Fault tripped(if this lasts for .5s car the BSPD fault is tripped and HV is shut off)
-	if(bspdTractiveSystemBrakingFault_state.data){
-		if(inputInverterVoltage_V.data != 0)
-			dc_current_limit_A = BSPD_POWER_LIMIT / inputInverterVoltage_V.data; //stay below 5 kW I = P/V
+	if(rvcBspdRunawayFault_state.data){
+		int16_t current_max_inv_voltage = max4Ints(inputInverterVoltage_FL_V.data,
+								   inputInverterVoltage_FR_V.data,
+								   inputInverterVoltage_RL_V.data,
+								   inputInverterVoltage_RR_V.data);
+		if(current_max_inv_voltage != 0)
+			dc_current_limit_A = BSPD_POWER_LIMIT / inputInverterVoltage_FL_V.data; //stay below 5 kW I = P/V
 	} else {
 		dc_current_limit_A = DC_CURRENT_LIMIT_AT_MAX_PACK_VOLTAGE_A;
 	}
@@ -82,14 +95,16 @@ bool is_vehicle_faulting(){
 
 	//Input Fault:
 	// Inclues Current Sensor & Rear Brake Pressure Range Fault
-	fault_tripped |= bspdInputFault_state.data;
+	fault_tripped |= rvcBspdInputFault_state.data;
 
 	// APPS/Brake Plausibility Fault:
 	// When Brake + Accelerator pushed at same time
 	bool appsBrakeLatched_state;
-	if(brakePressureFront_psi.data > APPS_BRAKE_PRESS_THRESH_psi && pedalPosition1_percent.data > 25) {
+	if(fvcBrakePressureFront_psi.data > APPS_BRAKE_PRESS_THRESH_psi && fvcPedalPosition1_percent.data > 25) {
+		fvcBothPedalsPressedFault_state.data = TRUE;
 		appsBrakeLatched_state = TRUE;
-	} else if (pedalPosition1_percent.data <= 5) {
+	} else if (fvcPedalPosition1_percent.data <= 5) {
+		fvcBothPedalsPressedFault_state.data = FALSE;
 		appsBrakeLatched_state = FALSE;
 	}
 	fault_tripped |= appsBrakeLatched_state;
@@ -98,6 +113,16 @@ bool is_vehicle_faulting(){
 }
 
 
-uint8_t predrive_conditions_met(){
-	return (brakePressureFront_psi.data >= PREDRIVE_BRAKE_THRESH_psi) && (PREDRIVE_BUTTON_PARAM.data == PRESSED)  && (inputInverterVoltage_V.data >= TS_ON_THRESHOLD_VOLTAGE_V);
+bool predrive_conditions_met(){
+	bool predrive_conditions = (fvcBrakePressureFront_psi.data >= PREDRIVE_BRAKE_THRESH_psi);
+
+	//predrive_conditions &= (PREDRIVE_BUTTON_PARAM.data == PRESSED);
+	
+	// Check that predrive voltages are high enough
+	predrive_conditions &= inputInverterVoltage_FL_V.data >= TS_ON_THRESHOLD_VOLTAGE_V;
+	predrive_conditions &= inputInverterVoltage_FR_V.data >= TS_ON_THRESHOLD_VOLTAGE_V;
+	predrive_conditions &= inputInverterVoltage_RL_V.data >= TS_ON_THRESHOLD_VOLTAGE_V;
+	predrive_conditions &= inputInverterVoltage_RR_V.data >= TS_ON_THRESHOLD_VOLTAGE_V;
+
+	return predrive_conditions;
 }
