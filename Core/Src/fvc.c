@@ -8,11 +8,10 @@ CAN_HandleTypeDef* CAN_REAR_INVERTERS;
 
 // Inverter State Machine Defines:
 VEHICLE_STATE_t vehicle_state;
-uint32_t preDriveTimer_ms;
+uint32_t preDriveStart_ms;
 float ac_currentLimit_Apk;
 float dc_currentlimit_A;
-U8_CAN_STRUCT *inv_enable_fbk_statuses[] = {&driveEnableInvStatus_FL_state, &driveEnableInvStatus_FR_state, &driveEnableInvStatus_RL_state, &driveEnableInvStatus_RR_state};
-U8_CAN_STRUCT *inv_fault_codes[] = {&faultCode_FL, &faultCode_FR, &faultCode_RL, &faultCode_RR};
+
 // Init FVC
 // What needs to happen on FVC startup 
 void init_fvc(CAN_HandleTypeDef* BUS_1, CAN_HandleTypeDef* BUS_2, CAN_HandleTypeDef* BUS_3){
@@ -47,43 +46,6 @@ void main_loop()
 }
 
 // ======================================== Inverter State Machine Functions ======================================================
-void determine_current_limits(VEHICLE_STATE_t state){
-	if (state != VEHICLE_DRIVING){
-		ac_currentLimit_Apk = 0;
-		dc_currentlimit_A = 0;
-	}
-	else{
-		ac_currentLimit_Apk = is_vehicle_faulting() ? 0 : AC_CURRENT_LIMIT_AT_MAX_PACK_VOLTAGE_Apk;
-		dc_currentlimit_A = calculate_dc_current_limit();
-	}
-}
-
-bool has_inverter_comms(){
-	uint32_t time_stamp = HAL_GetTick();
-	bool has_comms = TRUE;
-
-	for(int i = 0; i < TOTAL_INVERTERS; i++){
-		if (time_stamp - inv_enable_fbk_statuses[i]->info.last_rx >= INVERTER_TIMEOUT_ms)
-			has_comms = FALSE;
-	}
-
-	return has_comms;
-}
-
-bool inverter_fault_active(){
-	bool fault_active = FALSE;
-	for(int i = 0; i < TOTAL_INVERTERS; i++){
-		bool overvoltage_fault = inv_fault_codes[i]->data & INVERTER_OV_FAULT;
-		bool undervoltage_fault = inv_fault_codes[i]->data & INVERTER_UV_FAULT;
-		bool controller_overtemp = inv_fault_codes[i]->data & INVERTER_CTRL_TEMP_FAULT;
-		bool motor_overtemp = inv_fault_codes[i]->data & INVERTER_MOTOR_TEMP_FAULT;
-
-		if(overvoltage_fault || undervoltage_fault || controller_overtemp || motor_overtemp)
-			fault_active = TRUE;
-	} 
-
-	return fault_active;
-}
 void process_inverter() {
 
 	if (!has_inverter_comms())
@@ -92,7 +54,7 @@ void process_inverter() {
 		vehicle_state = VEHICLE_FAULT;
 	}
 
-	determine_current_parameters(vehicle_state);
+	determine_current_limits(&ac_currentLimit_Apk, &dc_currentlimit_A, vehicle_state);
 
 	switch (vehicle_state)
 	{
@@ -117,14 +79,14 @@ void process_inverter() {
 		// everything is good to go in this state, we are just waiting to enable the RTD button
 		if (predrive_conditions_met()) {
 			vehicle_state = VEHICLE_PREDRIVE;
-			preDriveTimer_ms = 0;
+			preDriveStart_ms = HAL_GetTick();
 		}
 
 		break;
 
 	case VEHICLE_PREDRIVE:
 		// buzz the RTD buzzer for the correct amount of time
-		if(++preDriveTimer_ms > PREDRIVE_TIME_ms) {
+		if(HAL_GetTick() - preDriveStart_ms > PREDRIVE_TIME_ms) {
 			vehicle_state = VEHICLE_DRIVING;
 		}
 
