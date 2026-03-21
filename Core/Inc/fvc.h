@@ -6,6 +6,13 @@
 #include <stdio.h>
 #include "stm32f7xx_hal_can.h"
 
+// ======================================== I/O General PARAMETERS ======================================
+#define NMOS_ON (GPIO_PIN_SET)
+#define NMOS_OFF (GPIO_PIN_RESET)
+#define PRESSED 1
+#define RELEASED 0
+// ==============================================================================================
+
 // ============================= TRACTIVE SYSTEM PARAMS =============================
 //Limits
 #define TRACTIVE_MARGIN                         
