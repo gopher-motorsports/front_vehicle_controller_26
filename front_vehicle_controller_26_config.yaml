@@ -3,33 +3,76 @@ module_name: "fvc"
 # NOTE: Frequencies will be converted to an integer number of ms for a delay
 
 buckets:
-    high_frequency_fvc:
-        frequency_hz: 250
+    high_frequency:
+        frequency_hz: 200
         parameters:
-            fvcPedalPosition1_mm: #connector pin 19, mcu pin 21
-                ADC: ADC1_IN5
-                sensor: linear_pos_sensor_25 #linear_pos_sensor_25
-                samples_buffered: 1
-            fvcPedalPosition2_mm: #connector pin 20, mcu pin 22
-                ADC: ADC1_IN6
-                sensor: linear_pos_sensor_25
-                samples_buffered: 1
-            fvcBrakePressureFront_psi: #connector pin 26, mcu pin 8
-                ADC: ADC1_IN10
-                sensor: brake_pressure_sensor_rife
-                samples_buffered: 1
-            fvcPedalPosition1_percent: 
+            fvcWheelSpeedFrontLeft_m_per_s:
                 ADC: NON_ADC
                 sensor: NON_ADC
                 samples_buffered: 1
-            fvcPedalPosition2_percent:  
+            fvcWheelSpeedFrontRight_m_per_s:
                 ADC: NON_ADC
                 sensor: NON_ADC
                 samples_buffered: 1
-            
-    low_frequency_fvc_but_faster:
+            fvcWheelSpeedRearLeft_m_per_s:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcWheelSpeedRearRight_m_per_s:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcShockPosFrontLeft_mm:
+                ADC: ADC1_IN1
+                sensor: front_left_shock_pos
+                samples_buffered: 1
+            fvcShockPosFrontRight_mm:
+                ADC: ADC1_IN0
+                sensor: front_right_shock_pos
+                samples_buffered: 1
+
+    medium_freqeuncy:
         frequency_hz: 100
         parameters:
+            fvcPedalPosition1_mm:
+                ADC: ADC1_IN3
+                sensor: linear_pos_sensor_25
+                samples_buffered: 1
+            fvcPedalPosition2_mm:
+                ADC: ADC1_IN14
+                sensor: linear_pos_sensor_25
+                samples_buffered: 1
+            fvcPedalPosition1_percent:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcPedalPosition2_percent:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcBrakePressureFront_psi:
+                ADC: ADC1_IN11
+                sensor: brake_pressure_sensor_rife
+                samples_buffered: 1
+            fvcSteeringAngle_deg:
+                ADC: ADC1_IN2
+                sensor: steering_angle_sensor
+                samples_buffered: 1
+    low_freqeuncy:
+        frequency_hz: 5
+        parameters:
+            fvcBrakeTempFrontLeft_C:
+                ADC: ADC1_IN6
+                sensor: brake_temp_sensor
+                samples_buffered: 1
+            fvcBrakeTempFrontRight_C:
+                ADC: ADC1_IN7
+                sensor: brake_temp_sensor
+                samples_buffered: 1
+            fvcFrontRideHeight_mm:
+                ADC: ADC1_IN15
+                sensor: full_raw_voltage_sensor
+                samples_buffered: 1
             fvcPedalPosition1Fault_state:
                 ADC: NON_ADC
                 sensor: NON_ADC
@@ -42,13 +85,10 @@ buckets:
                 ADC: NON_ADC
                 sensor: NON_ADC
                 samples_buffered: 1
-
-            fvcDisplayFaultStatus_state: 
+            fvcDisplayFaultStatus_state:
                 ADC: NON_ADC
                 sensor: NON_ADC
                 samples_buffered: 1
-            
-            # State of the vehicle (Disabled, RTD, etc.)
             fvcVehicleState_state:
                 ADC: NON_ADC
                 sensor: NON_ADC
@@ -57,56 +97,15 @@ buckets:
                 ADC: NON_ADC
                 sensor: NON_ADC
                 samples_buffered: 1
-            fvcSdcStatus3: #previously FVC_SDC_Fault_1_state
+            fvcSdcStatus3:
                 ADC: NON_ADC
                 sensor: NON_ADC
                 samples_buffered: 1
-            fvcSdcStatus4: #previously FVC_SDC_Fault_2_state
+            fvcSdcStatus4:
                 ADC: NON_ADC
                 sensor: NON_ADC
                 samples_buffered: 1
             fvcDriveSpeedMode_state:
-                ADC: NON_ADC
-                sensor: NON_ADC
-                samples_buffered: 1
-            
-            fvcBrakeTempFrontLeft_C: #connector pin 21, mcu pin 20
-                ADC: ADC1_IN4
-                sensor: brake_temp_sensor
-                samples_buffered: 1
-            fvcBrakeTempFrontRight_C: #connector pin 22, mcu pin 17
-                ADC: ADC1_IN3
-                sensor: brake_temp_sensor
-                samples_buffered: 1   
-            fvcSteeringAngle_deg: #connector pin 25, mcu pin 9
-                ADC: ADC1_IN11
-                sensor: steering_angle_sensor
-                samples_buffered: 1
-            fvcFrontRideHeight_mm: #connector pin 18, mcu pin 23
-                ADC: ADC1_IN7
-                sensor: full_raw_voltage_sensor
-                samples_buffered: 1
-            fvcShockPosFrontLeft_mm: #connector pin 23, mcu pin 11
-                ADC: ADC1_IN13
-                sensor: front_left_shock_pos
-                samples_buffered: 1
-            fvcShockPosFrontRight_mm: #connector pin 24, mcu pin 10
-                ADC: ADC1_IN12
-                sensor: front_right_shock_pos
-                samples_buffered: 1    
-            fvcWheelSpeedFrontLeft_m_per_s: 
-                ADC: NON_ADC
-                sensor: NON_ADC
-                samples_buffered: 1
-            fvcWheelSpeedFrontRight_m_per_s: 
-                ADC: NON_ADC
-                sensor: NON_ADC
-                samples_buffered: 1
-            fvcWheelSpeedRearLeft_m_per_s: 
-                ADC: NON_ADC
-                sensor: NON_ADC
-                samples_buffered: 1
-            fvcWheelSpeedRearRight_m_per_s:
                 ADC: NON_ADC
                 sensor: NON_ADC
                 samples_buffered: 1
