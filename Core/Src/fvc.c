@@ -6,6 +6,12 @@ CAN_HandleTypeDef* CAN_CARSIDE;
 CAN_HandleTypeDef* CAN_FRONT_INVERTERS;
 CAN_HandleTypeDef* CAN_REAR_INVERTERS;
 
+// Inverter State Machine Defines:
+VEHICLE_STATE_t vehicle_state;
+uint32_t preDriveStart_ms;
+float ac_currentLimit_Apk;
+float dc_currentlimit_A;
+
 // Init FVC
 // What needs to happen on FVC startup 
 void init_fvc(CAN_HandleTypeDef* BUS_1, CAN_HandleTypeDef* BUS_2, CAN_HandleTypeDef* BUS_3){
@@ -20,8 +26,6 @@ void init_fvc(CAN_HandleTypeDef* BUS_1, CAN_HandleTypeDef* BUS_2, CAN_HandleType
 
 
 // can_buffer_handling_loop
-// This loop will handle CAN RX software task and CAN TX hardware task. Should be
-// called every 1ms or as often as received messages should be handled
 void can_buffer_handling_loop()
 {
 	// handle each RX message in the buffer
@@ -35,9 +39,68 @@ void can_buffer_handling_loop()
 
 
 // main_loop
-// another loop. This includes logic for sending a CAN command. Designed to be
 // called every 1ms
 void main_loop()
 {
 	LED_task();
+}
+
+// ======================================== Inverter State Machine Functions ======================================================
+void process_inverter() {
+
+	if (!has_inverter_comms())
+		vehicle_state = VEHICLE_NO_COMMS;
+	else if (inverter_fault_active()){
+		vehicle_state = VEHICLE_FAULT;
+	}
+
+	determine_current_limits(&ac_currentLimit_Apk, &dc_currentlimit_A, vehicle_state);
+
+	switch (vehicle_state)
+	{
+	case VEHICLE_NO_COMMS:
+		// check too see we are receiving messages from inverter to validate comms
+		if (has_inverter_comms())
+		{
+			vehicle_state = VEHICLE_STANDBY;
+		}
+
+		break;
+
+	case VEHICLE_FAULT:
+		//check to see if fault goes away
+		if(!inverter_fault_active()) {
+			vehicle_state = VEHICLE_NO_COMMS;
+		}
+
+		break;
+
+	case VEHICLE_STANDBY:
+		// everything is good to go in this state, we are just waiting to enable the RTD button
+		if (predrive_conditions_met()) {
+			vehicle_state = VEHICLE_PREDRIVE;
+			preDriveStart_ms = HAL_GetTick();
+		}
+
+		break;
+
+	case VEHICLE_PREDRIVE:
+		// buzz the RTD buzzer for the correct amount of time
+		if(HAL_GetTick() - preDriveStart_ms > PREDRIVE_TIME_ms) {
+			vehicle_state = VEHICLE_DRIVING;
+		}
+
+		break;
+
+	case VEHICLE_DRIVING:
+
+		break;
+
+	default:
+		vehicle_state = VEHICLE_NO_COMMS;
+		break;
+	}
+
+	// send the current request
+	//update_inverter_params(vehicle_state, desiredCurrent_A, maxcurrentLimit_A, 200, vehicle_state == VEHICLE_DRIVING);
 }

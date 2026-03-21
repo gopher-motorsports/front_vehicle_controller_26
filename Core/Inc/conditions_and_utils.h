@@ -10,5 +10,7 @@ void LED_task();
 float calculate_dc_current_limit();
 bool is_vehicle_faulting();
 void set_dash_lights();
+bool predrive_conditions_met();
+void determine_current_limits(float *ac_currentLimit_Apk, float *dc_currentlimit_A, VEHICLE_STATE_t state);
 
 #endif /* INC_CONDITIONS_AND_UTILS_H_ */
