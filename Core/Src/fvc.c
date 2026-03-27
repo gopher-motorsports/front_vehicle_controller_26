@@ -7,7 +7,6 @@ CAN_HandleTypeDef* CAN_FRONT_INVERTERS;
 CAN_HandleTypeDef* CAN_REAR_INVERTERS;
 
 // Inverter State Machine Defines:
-VEHICLE_STATE_t vehicle_state;
 uint32_t preDriveStart_ms;
 float ac_currentLimit_Apk;
 float dc_currentlimit_A;

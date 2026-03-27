@@ -9,6 +9,7 @@
 // Inverter CAN Info
 U8_CAN_STRUCT *inv_enable_fbk_statuses[] = {&driveEnableInvStatus_FL_state, &driveEnableInvStatus_FR_state, &driveEnableInvStatus_RL_state, &driveEnableInvStatus_RR_state};
 U8_CAN_STRUCT *inv_fault_codes[]         = {&faultCode_FL, &faultCode_FR, &faultCode_RL, &faultCode_RR};
+bool appsBrakeLatched_state;
 
 // ========================================LED Functions======================================================
 //Heartbeat LED
@@ -45,6 +46,15 @@ int16_t max4Ints(int16_t a, int16_t b, int16_t c, int16_t d) {
     return max;
 }
 
+float clamp(float data, float min, float max){
+	if(data < min){
+		return min;
+	} else if (data > max){
+		return max;
+	}
+
+	return data;
+}
 // ==============================================================================================
 
 // ======================================== Rules Required Faults ======================================================
@@ -79,7 +89,6 @@ bool is_vehicle_faulting(){
 
 	// APPS/Brake Plausibility Fault:
 	// When Brake + Accelerator pushed at same time
-	bool appsBrakeLatched_state;
 	if(fvcBrakePressureFront_psi.data > APPS_BRAKE_PRESS_THRESH_psi && fvcPedalPosition1_percent.data > 25) {
 		fvcBothPedalsPressedFault_state.data = TRUE;
 		appsBrakeLatched_state = TRUE;
@@ -91,6 +100,11 @@ bool is_vehicle_faulting(){
 
 	return fault_tripped;
 }
+
+bool get_both_pedals_fault_state(){
+	return appsBrakeLatched_state;
+}
+
 // ==============================================================================================
 
 

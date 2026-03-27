@@ -4,6 +4,7 @@
 #include "main.h"
 #include "GopherCAN.h"
 #include <stdio.h>
+#include <stdbool.h>
 #include "stm32f7xx_hal_can.h"
 
 // ======================================== I/O General PARAMETERS ======================================
@@ -24,18 +25,25 @@
 //Properties
 #define TOTAL_INVERTERS         4       // 2 Dual Package F-Sic Inverters = 4 total inverters
 #define MOTOR_POLE_PAIRS   		4 	    // Amount of Pole Pairs of the MTS Motor, 4 pole pairs = 8 poles
-
+#define DRIVE_TRAIN_GEAR_RATIO	12.8	// Drive Train Gear Ratio
+#define WHEEL_RADIUS			0.2032	// Wheel Raidus = 8 inches --> 0.2032 in
 // ============================= CAR PARAMS =============================
 //Thresholds for "fvc.software_faults.c" 
 #define INPUT_TRIP_DELAY_ms   85     // The amount of time it takes an input fault to take effect, margin from 100
 
-#define APPS_MAX_ERROR_POS_mm 23.00f // position where the error begins
-#define APPS_MIN_ERROR_POS_mm 1.00f  // position where the error begins
+#define APPS_1_MAX_CURRENT_POS_mm  18.25f // The position of the pedal at 100% torque
+#define APPS_1_MIN_CURRENT_POS_mm  6.25f  // The position of the pedal at 0% torque
+#define APPS_2_MAX_CURRENT_POS_mm  17.50f // The position of the pedal at 100% torque
+#define APPS_2_MIN_CURRENT_POS_mm  4.50f  // The position of the pedal at 0% torque
+#define APPS_1_TOTAL_TRAVEL_mm ( APPS_1_MAX_CURRENT_POS_mm - APPS_1_MIN_CURRENT_POS_mm )
+#define APPS_2_TOTAL_TRAVEL_mm ( APPS_2_MAX_CURRENT_POS_mm - APPS_2_MIN_CURRENT_POS_mm )
+
+#define APPS_MAX_ERROR_POS_mm 25.00f // position where the error begins
+#define APPS_MIN_ERROR_POS_mm 0.50f  // position where the error begins
+#define APPS_CORRELATION_THRESH_percent 10 // greater than 10% difference is a fault between pedals
 
 #define FRONT_BRAKE_PRESS_MAX_psi   1700   // maximum brake pressure 1600, do 1700 for margin
 #define FRONT_BRAKE_PRESS_MIN_psi   -100   // minimum brake pressue 0, do -100 for margin
-
-#define APPS_CORRELATION_THRESH_percent 10 // greater than 10% difference is a fault between pedals
 
 //Thresholds for APPS/Brake Plausibility
 #define APPS_BRAKE_PRESS_THRESH_psi  100.0 //6.25% of brake pressure = mechanical breaks engaged
@@ -58,6 +66,10 @@
 #define INVERTER_CTRL_TEMP_FAULT  0x04  // Inverter Controller Overtemp of user setpoint
 #define INVERTER_MOTOR_TEMP_FAULT 0x05	// Inverter Motor Overtemp of user setpoint
 //Inverter Variables:
+
+// ============================= Misc PARAMS =============================
+#define MATH_PI             3.14159265
+#define SECONDS_PER_MINUTE	60
 typedef enum
 {
 	VEHICLE_NO_COMMS  = 0, // When the inverter first turns on and if there is ever a loss of communication
@@ -67,8 +79,56 @@ typedef enum
 	VEHICLE_DRIVING   = 4, // Torque commands are actively being sent from APPS positions
 } VEHICLE_STATE_t;
 
+typedef enum {
+	NONE = 0,
+	RELEASE_PEDAL,
+	BRAKING_FAULT,
+	APPS_FAULT,
+	BSPD_FAULT,
+	AMS_FAULT,
+	IMD_FAULT,
+	VCU_FAULT,
+	BMS_FAULT,
+	INVERTER_FAULT
+} DISPLAY_FAULT_STATUS_t;
+
+typedef struct {
+	float slip_tract_limit_percent;
+	float car_speed;
+	float wheel_speed_FL;
+	float wheel_speed_FR;
+	float wheel_speed_RL;
+	float wheel_speed_RR;
+	float throttle_percent;
+	float tauMaxLimit_Nm;
+	float currentMaxLimit_Apk;
+} DRIVE_CONTROL_INPUTS;
+
+typedef struct {
+	float tauFL_Nm;
+	float tauFR_Nm;
+	float tauRL_Nm;
+	float tauRR_Nm;
+	float tauTotalCMD_Nm;
+	float slipFL;
+	float slipFR;	
+	float slipRL;
+	float slipRR;
+	bool  is_FL_slipping;
+	bool  is_FR_slipping;
+	bool  is_RL_slipping;
+	bool  is_RR_slipping;
+	float currentCMDTotal_Apk;
+	float currentCMDFL_Apk;
+	float currentCMDFR_Apk;
+	float currentCMDRL_Apk;
+	float currentCMDRR_Apk;
+} DRIVE_CONTROL_OUTPUTS;
+
 void init_fvc(CAN_HandleTypeDef* BUS_1, CAN_HandleTypeDef* BUS_2, CAN_HandleTypeDef* BUS_3);
 void can_buffer_handling_loop();
 void main_loop();
 
+extern VEHICLE_STATE_t vehicle_state;
+extern DRIVE_CONTROL_OUTPUTS open_diff_outputs;
 #endif /* INC_steering_wheel_module_26_H */

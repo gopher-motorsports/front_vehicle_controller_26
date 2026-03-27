@@ -12,5 +12,6 @@ bool is_vehicle_faulting();
 void set_dash_lights();
 bool predrive_conditions_met();
 void determine_current_limits(float *ac_currentLimit_Apk, float *dc_currentlimit_A, VEHICLE_STATE_t state);
+float clamp(float data, float min, float max);
 
 #endif /* INC_CONDITIONS_AND_UTILS_H_ */

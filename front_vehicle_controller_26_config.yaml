@@ -58,6 +58,7 @@ buckets:
                 ADC: ADC1_IN2
                 sensor: steering_angle_sensor
                 samples_buffered: 1
+                
     low_freqeuncy:
         frequency_hz: 5
         parameters:
