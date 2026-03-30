@@ -129,7 +129,9 @@ void process_inverter() {
 		}
 
 		break;
-
+	
+	// Create a VEHCILE_FRONT_WHEEL_DRIVE, VEHCILE_REAR_WHEEL_DRIVE, VEHICLE_ALL_WHEEL_DRIVE
+	// Will need to pass to open diff/torque vectoring simulink controller which wheels should get power
 	case VEHICLE_DRIVING:
 		drive_control_timestep_start = HAL_GetTick();
 		break;

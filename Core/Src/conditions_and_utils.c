@@ -181,6 +181,12 @@ bool predrive_conditions_met(){
 	return predrive_conditions;
 }
 
+// Maybe return like a status struct that has 4 booleans and tells you if you have
+// Comms from any interver
+// Comms from front 2 inverters
+// Comms from rear 2 inverters
+// Comms from all 4 inverters
+// this would be something nice to log in data also
 bool has_inverter_comms(){
 	uint32_t time_stamp = HAL_GetTick();
 	bool has_comms = TRUE;
