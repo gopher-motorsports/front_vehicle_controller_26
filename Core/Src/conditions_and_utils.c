@@ -9,15 +9,27 @@
 // Inverter CAN Info
 U8_CAN_STRUCT *inv_enable_fbk_statuses[] = {&driveEnableInvStatus_FL_state, &driveEnableInvStatus_FR_state, &driveEnableInvStatus_RL_state, &driveEnableInvStatus_RR_state};
 U8_CAN_STRUCT *inv_fault_codes[]         = {&faultCode_FL, &faultCode_FR, &faultCode_RL, &faultCode_RR};
+bool appsBrakeLatched_state;
+
+// Status Defines
+bool Hbeat_LED_status = OFF;
+
+// Drive Defines
+bool slow_mode = OFF;
 
 // ========================================LED Functions======================================================
 //Heartbeat LED
-void LED_task(){
+void Hbeat_blink(){
 	static uint32_t last_led = 0;
 	if(HAL_GetTick() - last_led >= HBEAT_LED_DELAY_TIME_ms) {
 		HAL_GPIO_TogglePin(HBeat_GPIO_Port, HBeat_Pin);
+		Hbeat_LED_status = !(Hbeat_LED_status);
 		last_led = HAL_GetTick();
 	}
+}
+
+bool get_Hbeat_status(){
+	return Hbeat_LED_status;
 }
 
 // Dash Light Functionality:
@@ -45,6 +57,15 @@ int16_t max4Ints(int16_t a, int16_t b, int16_t c, int16_t d) {
     return max;
 }
 
+float clamp(float data, float min, float max){
+	if(data < min){
+		return min;
+	} else if (data > max){
+		return max;
+	}
+
+	return data;
+}
 // ==============================================================================================
 
 // ======================================== Rules Required Faults ======================================================
@@ -79,18 +100,20 @@ bool is_vehicle_faulting(){
 
 	// APPS/Brake Plausibility Fault:
 	// When Brake + Accelerator pushed at same time
-	bool appsBrakeLatched_state;
 	if(fvcBrakePressureFront_psi.data > APPS_BRAKE_PRESS_THRESH_psi && fvcPedalPosition1_percent.data > 25) {
-		fvcBothPedalsPressedFault_state.data = TRUE;
 		appsBrakeLatched_state = TRUE;
 	} else if (fvcPedalPosition1_percent.data <= 5) {
-		fvcBothPedalsPressedFault_state.data = FALSE;
 		appsBrakeLatched_state = FALSE;
 	}
 	fault_tripped |= appsBrakeLatched_state;
 
 	return fault_tripped;
 }
+
+bool get_both_pedals_fault_state(){
+	return appsBrakeLatched_state;
+}
+
 // ==============================================================================================
 
 
@@ -115,16 +138,33 @@ float calculate_dc_current_limit(){
 	return dc_current_limit_A;
 }
 
-void determine_current_limits(float *ac_currentLimit_Apk, float *dc_currentlimit_A, VEHICLE_STATE_t state){
-	if (state != VEHICLE_DRIVING){
-		*ac_currentLimit_Apk = 0;
-		*dc_currentlimit_A = 0;
+void update_drive_control_inputs(bool *inverter_drive_enable){
+
+	// Wheel Speeds
+	open_diff_inputs.car_speed      = vnavVelBodyX.data;
+	open_diff_inputs.wheel_speed_FL = fvcWheelSpeedFrontLeft_m_per_s.data;
+	open_diff_inputs.wheel_speed_FR = fvcWheelSpeedFrontRight_m_per_s.data;
+	open_diff_inputs.wheel_speed_RL = fvcWheelSpeedRearLeft_m_per_s.data;
+	open_diff_inputs.wheel_speed_RR = fvcWheelSpeedRearRight_m_per_s.data;
+
+	// Throttle
+	open_diff_inputs.throttle_percent = fvcPedalPosition1_percent.data;
+
+	// Current Limits + Enable
+	float max_AC_inv_limit = (slow_mode) ? AC_CURRENT_LIMIT_AT_MAX_PACK_VOLTAGE_Apk : AC_CURRENT_SLOW_MODE_MAX_Apk;
+	if (vehicle_state != VEHICLE_DRIVING){
+		open_diff_inputs.ac_currentMaxLimit_Apk = 0;
+		open_diff_inputs.dc_currentMaxlimit_A   = 0;
+		*inverter_drive_enable = FALSE; 
 	}
 	else{
-		*ac_currentLimit_Apk = is_vehicle_faulting() ? 0 : AC_CURRENT_LIMIT_AT_MAX_PACK_VOLTAGE_Apk;
-		*dc_currentlimit_A = calculate_dc_current_limit();
+		open_diff_inputs.ac_currentMaxLimit_Apk = is_vehicle_faulting() ? 0 : max_AC_inv_limit;
+		open_diff_inputs.dc_currentMaxlimit_A = calculate_dc_current_limit();
+		*inverter_drive_enable = TRUE; 
 	}
+
 }
+
 
 // ======================================== Inverter Condition Functions ======================================================
 bool predrive_conditions_met(){
@@ -166,4 +206,8 @@ bool inverter_fault_active(){
 	} 
 
 	return fault_active;
+}
+
+bool get_slow_mode_status(){
+	return slow_mode;
 }

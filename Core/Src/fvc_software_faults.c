@@ -22,7 +22,7 @@ SOFTWARE_FAULT APPS1_Range_Fault = {
 	.fault_timer = 0,
 	.input_delay_threshold = INPUT_TRIP_DELAY_ms,
 	.state = false,
-	.can_param = &fvcPedalPosition1Fault_state
+	.can_param = &fvcPedalPosition1RangeFault_state
 };
 
 //APPS2 Out of Range Check
@@ -33,7 +33,7 @@ SOFTWARE_FAULT APPS2_Range_Fault = {
 	.fault_timer = 0,
 	.input_delay_threshold = INPUT_TRIP_DELAY_ms,
 	.state = false,
-	.can_param = &fvcPedalPosition2Fault_state
+	.can_param = &fvcPedalPosition2RangeFault_state
 };
 
 //Front Brake Pressure Sensor Out of Range Check

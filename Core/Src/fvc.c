@@ -7,10 +7,43 @@ CAN_HandleTypeDef* CAN_FRONT_INVERTERS;
 CAN_HandleTypeDef* CAN_REAR_INVERTERS;
 
 // Inverter State Machine Defines:
-VEHICLE_STATE_t vehicle_state;
 uint32_t preDriveStart_ms;
-float ac_currentLimit_Apk;
-float dc_currentlimit_A;
+uint32_t drive_control_timestep_start;
+bool global_inverter_enable;
+
+DRIVE_CONTROL_INPUTS open_diff_inputs = {
+	.slip_tract_limit_percent = TRACTION_LIMIT_percent,
+	.car_speed      = 0.0,
+	.wheel_speed_FL = 0.0,
+	.wheel_speed_FR = 0.0,
+	.wheel_speed_RL = 0.0,
+	.wheel_speed_RR = 0.0,
+	.throttle_percent = 0.0,
+	.tauMaxLimit_Nm = MOTOR_MAX_TORQUE_Nm,
+	.ac_currentMaxLimit_Apk = 0.0,
+	.dc_currentMaxlimit_A = 0.0,
+};
+
+DRIVE_CONTROL_OUTPUTS open_diff_outputs = {
+	.slipFL_percent = 0.0,
+	.slipFR_percent = 0.0,
+	.slipRL_percent = 0.0,
+	.slipRR_percent = 0.0,
+	.is_FL_slipping = FALSE,
+	.is_FR_slipping = FALSE,
+	.is_RL_slipping = FALSE,
+	.is_RR_slipping = FALSE,
+	.tauFL_Nm = 0.0,
+	.tauFR_Nm = 0.0,
+	.tauRL_Nm = 0.0,
+	.tauRR_Nm = 0.0,
+	.tauTotalCMD_Nm = 0.0,
+	.currentCMDFL_Apk = 0.0,
+	.currentCMDFR_Apk = 0.0,
+	.currentCMDRL_Apk = 0.0,
+	.currentCMDRR_Apk = 0.0,
+	.currentCMDTotal_Apk = 0.0
+};
 
 // Init FVC
 // What needs to happen on FVC startup 
@@ -42,10 +75,15 @@ void can_buffer_handling_loop()
 // called every 1ms
 void main_loop()
 {
-	LED_task();
+	Hbeat_blink();
 }
 
-// ======================================== Inverter State Machine Functions ======================================================
+// ======================================== Inverter State Machine Getters/Setters ======================================================
+uint32_t get_drive_control_timestep_start(){
+	return drive_control_timestep_start;
+}
+
+// ======================================== Inverter State Machine ======================================================
 void process_inverter() {
 
 	if (!has_inverter_comms())
@@ -54,7 +92,7 @@ void process_inverter() {
 		vehicle_state = VEHICLE_FAULT;
 	}
 
-	determine_current_limits(&ac_currentLimit_Apk, &dc_currentlimit_A, vehicle_state);
+	update_drive_control_inputs(&global_inverter_enable);
 
 	switch (vehicle_state)
 	{
@@ -93,7 +131,7 @@ void process_inverter() {
 		break;
 
 	case VEHICLE_DRIVING:
-
+		drive_control_timestep_start = HAL_GetTick();
 		break;
 
 	default:
