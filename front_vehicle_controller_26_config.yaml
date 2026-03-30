@@ -58,7 +58,82 @@ buckets:
                 ADC: ADC1_IN2
                 sensor: steering_angle_sensor
                 samples_buffered: 1
-                
+            
+            fvcVehicleState_state:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcDriveControlTimestepStart_ms:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+
+            # Drive Inputs
+            fvcSlipTractionLimit_percent:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+
+            # Drive Outputs
+            fvcSlip_FL_percent:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcSlip_FR_percent:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcSlip_RL_percent:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcSlip_RR_percent:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+
+            fvcSlipStatus_FL_state:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcSlipStatus_FR_state:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcSlipStatus_RL_state:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcSlipStatus_RR_state:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            
+            fvcTau_FL_Nm:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcTau_FR_Nm:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcTau_RL_Nm:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcTau_RR_Nm:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcTauTotalCMD_Nm:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcCurrentTotalCMD_Apk:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+
     low_freqeuncy:
         frequency_hz: 5
         parameters:
@@ -74,11 +149,11 @@ buckets:
                 ADC: ADC1_IN15
                 sensor: full_raw_voltage_sensor
                 samples_buffered: 1
-            fvcPedalPosition1Fault_state:
+            fvcPedalPosition1RangeFault_state:
                 ADC: NON_ADC
                 sensor: NON_ADC
                 samples_buffered: 1
-            fvcPedalPosition2Fault_state:
+            fvcPedalPosition2RangeFault_state:
                 ADC: NON_ADC
                 sensor: NON_ADC
                 samples_buffered: 1
@@ -86,11 +161,11 @@ buckets:
                 ADC: NON_ADC
                 sensor: NON_ADC
                 samples_buffered: 1
-            fvcDisplayFaultStatus_state:
+            fvcBothPedalsPressedFault_state:
                 ADC: NON_ADC
                 sensor: NON_ADC
                 samples_buffered: 1
-            fvcVehicleState_state:
+            fvcDisplayFaultStatus_state:
                 ADC: NON_ADC
                 sensor: NON_ADC
                 samples_buffered: 1
@@ -107,6 +182,66 @@ buckets:
                 sensor: NON_ADC
                 samples_buffered: 1
             fvcDriveSpeedMode_state:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+
+            # Forwarded Motor/Inverter Temps
+            fvcControllerTemp_FL_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcControllerTemp_FR_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcControllerTemp_RL_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcControllerTemp_RR_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcMotorTemp_FL_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcMotorTemp_FR_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcMotorTemp_RL_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcMotorTemp_RR_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            
+            # Efuse Fault Data
+            fvcEfuse3V3SNSFault_state:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcEfuse5VSNSFault1_state:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcEfuse5VSNSFault2_state:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcEfuse5VSWMFault_state:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcEfuse12VSNSFault_state:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcEfuse12VDispFault_state:
                 ADC: NON_ADC
                 sensor: NON_ADC
                 samples_buffered: 1

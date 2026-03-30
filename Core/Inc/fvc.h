@@ -12,16 +12,19 @@
 #define NMOS_OFF (GPIO_PIN_RESET)
 #define PRESSED 1
 #define RELEASED 0
+#define ON 1
+#define OFF 0
 // ==============================================================================================
 
 // ============================= TRACTIVE SYSTEM PARAMS =============================
 //Limits
 #define TRACTIVE_MARGIN                         
-#define BSPD_POWER_LIMIT		                  4000.0   // 5 kW limit before a car shutdown is required, 4 kW with buffer
-#define DC_CURRENT_LIMIT_AT_MAX_PACK_VOLTAGE_A    125.15 // DC Current Limit at Max Pack Voltage
-#define AC_CURRENT_LIMIT_AT_MAX_PACK_VOLTAGE_Apk  390    // TODO: PLACEHOLDER Replace with better value
-#define MAX_PACK_VOLTAGE                          599.2  
-#define NOMINAL_PACK_VOLTAGE                      420   // 3.0V per cell * 140 cells = 420V
+#define BSPD_POWER_LIMIT		                  	4000.0   // 5 kW limit before a car shutdown is required, 4 kW with buffer
+#define DC_CURRENT_LIMIT_AT_MAX_PACK_VOLTAGE_A    	125.15 // DC Current Limit at Max Pack Voltage
+#define AC_CURRENT_LIMIT_AT_MAX_PACK_VOLTAGE_Apk  	390    // TODO: PLACEHOLDER Replace with better value
+#define AC_CURRENT_SLOW_MODE_MAX_Apk  				AC_CURRENT_LIMIT_AT_MAX_PACK_VOLTAGE_Apk / 3    // TODO: PLACEHOLDER Replace with better value
+#define MAX_PACK_VOLTAGE                          	599.2  
+#define NOMINAL_PACK_VOLTAGE                      	420   // 3.0V per cell * 140 cells = 420V
 //Properties
 #define TOTAL_INVERTERS         4       // 2 Dual Package F-Sic Inverters = 4 total inverters
 #define MOTOR_POLE_PAIRS   		4 	    // Amount of Pole Pairs of the MTS Motor, 4 pole pairs = 8 poles
@@ -67,9 +70,14 @@
 #define INVERTER_MOTOR_TEMP_FAULT 0x05	// Inverter Motor Overtemp of user setpoint
 //Inverter Variables:
 
-// ============================= Misc PARAMS =============================
+// ============================= Drive Control PARAMS =============================
+#define TRACTION_LIMIT_percent    15.0	// Past this wheel slip we have broken traction
+#define MOTOR_MAX_TORQUE_Nm	  36				  
+// ============================= Misc/MATH PARAMS =============================
 #define MATH_PI             3.14159265
 #define SECONDS_PER_MINUTE	60
+#define ERPM_TO_M_PER_S		(1 / MOTOR_POLE_PAIRS) * (1 / DRIVE_TRAIN_GEAR_RATIO) * (2 * WHEEL_RADIUS * MATH_PI) * (1 / SECONDS_PER_MINUTE)
+
 typedef enum
 {
 	VEHICLE_NO_COMMS  = 0, // When the inverter first turns on and if there is ever a loss of communication
@@ -78,19 +86,6 @@ typedef enum
 	VEHICLE_PREDRIVE  = 3, // The vehicle buzzer is active and the driving state will be entered
 	VEHICLE_DRIVING   = 4, // Torque commands are actively being sent from APPS positions
 } VEHICLE_STATE_t;
-
-typedef enum {
-	NONE = 0,
-	RELEASE_PEDAL,
-	BRAKING_FAULT,
-	APPS_FAULT,
-	BSPD_FAULT,
-	AMS_FAULT,
-	IMD_FAULT,
-	VCU_FAULT,
-	BMS_FAULT,
-	INVERTER_FAULT
-} DISPLAY_FAULT_STATUS_t;
 
 typedef struct {
 	float slip_tract_limit_percent;
@@ -101,34 +96,38 @@ typedef struct {
 	float wheel_speed_RR;
 	float throttle_percent;
 	float tauMaxLimit_Nm;
-	float currentMaxLimit_Apk;
+	float ac_currentMaxLimit_Apk;
+	float dc_currentMaxlimit_A;
 } DRIVE_CONTROL_INPUTS;
 
 typedef struct {
+	float slipFL_percent;
+	float slipFR_percent;	
+	float slipRL_percent;
+	float slipRR_percent;
+	bool  is_FL_slipping;
+	bool  is_FR_slipping;
+	bool  is_RL_slipping;
+	bool  is_RR_slipping;
 	float tauFL_Nm;
 	float tauFR_Nm;
 	float tauRL_Nm;
 	float tauRR_Nm;
 	float tauTotalCMD_Nm;
-	float slipFL;
-	float slipFR;	
-	float slipRL;
-	float slipRR;
-	bool  is_FL_slipping;
-	bool  is_FR_slipping;
-	bool  is_RL_slipping;
-	bool  is_RR_slipping;
-	float currentCMDTotal_Apk;
 	float currentCMDFL_Apk;
 	float currentCMDFR_Apk;
 	float currentCMDRL_Apk;
 	float currentCMDRR_Apk;
+	float currentCMDTotal_Apk;
 } DRIVE_CONTROL_OUTPUTS;
 
 void init_fvc(CAN_HandleTypeDef* BUS_1, CAN_HandleTypeDef* BUS_2, CAN_HandleTypeDef* BUS_3);
 void can_buffer_handling_loop();
+uint32_t get_drive_control_timestep_start();
 void main_loop();
+void process_inverter();
 
 extern VEHICLE_STATE_t vehicle_state;
+extern DRIVE_CONTROL_INPUTS open_diff_inputs;
 extern DRIVE_CONTROL_OUTPUTS open_diff_outputs;
 #endif /* INC_steering_wheel_module_26_H */

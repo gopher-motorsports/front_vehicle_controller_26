@@ -1,18 +1,23 @@
-/*
- * sensor_and_CAN.h
- *
- *  Created on: Apr 3, 2025
- *      Author: chris
- */
-
 #ifndef INC_SENSOR_AND_CAN_H_
 #define INC_SENSOR_AND_CAN_H_
-void update_periodic_CAN_params();
-void update_fault_state(U8_CAN_STRUCT *param, uint8_t state, uint8_t last_state);
-void update_inverter_params(uint8_t vehicle_state, float desired_current, float max_current, float max_dc_current, uint8_t enable);
-void update_pedal_percent();
-void calculate_rpm();
-float clamp(float data, float min, float max);
-uint8_t determine_disp_fault_status();
-bool get_both_pedals_fault_state();
+
+typedef enum {
+	NONE = 0,
+	RELEASE_PEDAL,
+	BRAKING_FAULT,
+	APPS_FAULT,
+	BSPD_FAULT,
+	AMS_FAULT,
+	IMD_FAULT,
+	VCU_FAULT,
+	BMS_FAULT,
+	INVERTER_FAULT
+} DISPLAY_FAULT_STATUS_t;
+
+void update_non_ADC_CAN_params();
+void update_inverter_params();
+
+float calc_pedal_percent(float pedalPos_mm, float min_position_mm, float total_range_mm);
+float calc_wheel_m_per_s(float electrical_rpm);
+DISPLAY_FAULT_STATUS_t determine_disp_fault_status();
 #endif /* INC_SENSOR_AND_CAN_H_ */

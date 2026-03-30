@@ -2,16 +2,30 @@
 #define INC_CONDITIONS_AND_UTILS_H_
 
 #include <stdbool.h>
+#include <stdint.h>
+
 // LED Code
 #define HBEAT_LED_DELAY_TIME_ms 500
-void LED_task();
-
-// Sensor Faults/Limits
-float calculate_dc_current_limit();
-bool is_vehicle_faulting();
+void Hbeat_blink();
+bool get_Hbeat_status();
 void set_dash_lights();
-bool predrive_conditions_met();
-void determine_current_limits(float *ac_currentLimit_Apk, float *dc_currentlimit_A, VEHICLE_STATE_t state);
+
+// General Utilities
+int16_t max4Ints(int16_t a, int16_t b, int16_t c, int16_t d);
 float clamp(float data, float min, float max);
+
+// Rules Required Faults
+bool is_vehicle_faulting();
+bool get_both_pedals_fault_state();
+
+// Inverter Limit Functions
+float calculate_dc_current_limit();
+void update_drive_control_inputs(bool *inverter_drive_enable);
+
+// Inverter Condition Functions
+bool predrive_conditions_met();
+bool has_inverter_comms();
+bool inverter_fault_active();
+bool get_slow_mode_status();
 
 #endif /* INC_CONDITIONS_AND_UTILS_H_ */
