@@ -64,7 +64,9 @@ typedef enum
 	VEHICLE_FAULT     = 1, // The vehicle can detect that the inverter is Faulting
 	VEHICLE_STANDBY   = 2, // The inverter has exited lockout but no torque commands will be sent
 	VEHICLE_PREDRIVE  = 3, // The vehicle buzzer is active and the driving state will be entered
-	VEHICLE_DRIVING   = 4, // Torque commands are actively being sent from APPS positions
+	VEHICLE_4WD 	  = 4, // Torque commands are actively being sent from APPS positions
+	VEHICLE_FWD 	  = 5;
+	VEHICLE_RWD 	  = 6;
 } VEHICLE_STATE_t;
 
 void init_fvc(CAN_HandleTypeDef* BUS_1, CAN_HandleTypeDef* BUS_2, CAN_HandleTypeDef* BUS_3);

@@ -55,7 +55,8 @@ void process_inverter() {
 	}
 
 	determine_current_limits(&ac_currentLimit_Apk, &dc_currentlimit_A, vehicle_state);
-
+	InverterComms_Status_t comms = get_inverter_comms_status();
+	
 	switch (vehicle_state)
 	{
 	case VEHICLE_NO_COMMS:
@@ -87,15 +88,46 @@ void process_inverter() {
 	case VEHICLE_PREDRIVE:
 		// buzz the RTD buzzer for the correct amount of time
 		if(HAL_GetTick() - preDriveStart_ms > PREDRIVE_TIME_ms) {
-			vehicle_state = VEHICLE_DRIVING;
+			if(comms.all_comms){
+				vehicle_state = VEHICLE_4WD;
+			}
+			else if(comms.front_comms){
+				vehicle_state = VEHICLE_FWD;
+			}
+			else{
+				vehicle_state = VEHICLE_RWD;
+			}
 		}
 
 		break;
 	
 	// Create a VEHCILE_FRONT_WHEEL_DRIVE, VEHCILE_REAR_WHEEL_DRIVE, VEHICLE_ALL_WHEEL_DRIVE
 	// Will need to pass to open diff/torque vectoring simulink controller which wheels should get power
-	case VEHICLE_DRIVING:
-
+	
+	//create swich cases for the comms here?
+	case VEHICLE_FWD:
+		if(comms.all_comms){
+			vehicle_state = VEHICLE_4WD;
+		} else if(comms.front_comms != 1){
+			vehicle_state = VEHICLE_RWD;
+		}
+		break;
+	case VEHICLE_RWD:
+		if(comms.all_comms){
+			vehicle_state = VEHICLE_4WD;
+			//send diff/torque inside if statements depending on which case
+		} else if(comms.rear_comms != 1){
+			vehicle_state = VEHICLE_FWD;
+		}
+		break;
+	case VEHICLE_4WD:
+		if(comms.all_comms !=1){
+			if(comms.front_comms){
+				vehicle_state = VEHICLE_FWD;
+			} else {
+				vehicle_state = VEHICLE_RWD;
+			}
+		}
 		break;
 
 	default:

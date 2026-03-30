@@ -146,7 +146,33 @@ bool predrive_conditions_met(){
 // Comms from front 2 inverters
 // Comms from rear 2 inverters
 // Comms from all 4 inverters
-// this would be something nice to log in data also
+// this would be something nice to log in data also 
+typdef struct { 
+	bool any_comms;
+	bool front_comms;
+	bool rear_comms;
+	bool all_comms;
+} InverterComms_Status_t;
+
+InverterComms_Status_t get_inverter_comms_status(){
+	uint32_t time_stamp = HAL_GetTick();
+
+	InverterComms_Status_t status = {0};
+
+	bool fl_ok = (time_stamp - inv_enable_fbk_statuses[0]->info.last_rx < INVERTER_TIMEOUT_ms);
+	bool fr_ok = (time_stamp - inv_enable_fbk_statuses[1]->info.last_rx < INVERTER_TIMEOUT_ms);
+	bool rl_ok = (time_stamp - inv_enable_fbk_statuses[2]->info.last_rx < INVERTER_TIMEOUT_ms);
+	bool rr_ok = (time_stamp - inv_enable_fbk_statuses[3]->info.last_rx < INVERTER_TIMEOUT_ms);
+	
+	status.any_comms = (fl_ok || fr_ok || rl_ok || rr_ok);
+	status.front_comms = (fl_ok && fr_ok);
+	status.rear_comms = (rr_ok && rl_ok);
+	status.all_comms = (status.front_comms && status.rear_comms);
+
+	return status;
+
+}
+
 bool has_inverter_comms(){
 	uint32_t time_stamp = HAL_GetTick();
 	bool has_comms = TRUE;
