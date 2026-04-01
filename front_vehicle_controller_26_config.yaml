@@ -249,7 +249,15 @@ buckets:
                 ADC: NON_ADC
                 sensor: NON_ADC
                 samples_buffered: 1
-            
+            fvcEfuse12VDispCurrent_A:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcEfuse12VSNSCurrent_A:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+                
             fvcGitBranchName:
                 ADC: NON_ADC
                 sensor: NON_ADC
@@ -266,5 +274,3 @@ buckets:
                 ADC: NON_ADC
                 sensor: NON_ADC
                 samples_buffered: 1
-
-            
