@@ -36,7 +36,7 @@ SOFTWARE_FAULT APPS2_Range_Fault = {
 SOFTWARE_FAULT Pedal_Correlation_Fault = {
     .data = 0, //float absolute value
 	.max_threshold = APPS_CORRELATION_THRESH_percent,
-	.min_threshold = -FLT_MIN, //not using this one, put in smallest mimumum value of a float so won't trigger
+	.min_threshold = -FLT_MAX, //not using this one, put in smallest mimumum value of a float so won't trigger
 	.fault_timer = 0,
 	.input_delay_threshold = INPUT_TRIP_DELAY_ms,
 	.state = false
@@ -66,6 +66,7 @@ FVC_LOW_POWER_CHANNEL SNS_3V3_Chan = {
 	},
 	.hardware_state = LOW_POW_EFUSE_NO_FLT,
 	.mode = NORMAL,
+	.enabled = FALSE,
     .flt_state = FALSE,     
 	.trip_start_ms = 0,
     .retry_delay_ms = EFUSE_RETRY_DELAY_ms,
@@ -86,6 +87,7 @@ FVC_LOW_POWER_CHANNEL SNS1_5V_Chan = {
 		.pin  = SNS_5V_Flt_1_LED_Pin
 	},
     .mode = NORMAL,
+	.enabled = FALSE,
 	.hardware_state = LOW_POW_EFUSE_NO_FLT,
     .flt_state = FALSE,     
 	.trip_start_ms = 0,
@@ -107,6 +109,7 @@ FVC_LOW_POWER_CHANNEL SNS2_5V_Chan = {
 		.pin  = SNS_5V_Flt_2_LED_Pin
 	},
     .mode = NORMAL,
+	.enabled = FALSE,
 	.hardware_state = LOW_POW_EFUSE_NO_FLT,
     .flt_state = FALSE,     
 	.trip_start_ms = 0,
@@ -128,6 +131,7 @@ FVC_LOW_POWER_CHANNEL SWM_5V_Chan = {
 		.pin  = SWM_Flt_LED_Pin
 	},
     .mode = NORMAL,
+	.enabled = FALSE,
 	.hardware_state = LOW_POW_EFUSE_NO_FLT,
     .flt_state = FALSE,     
 	.trip_start_ms = 0,
@@ -157,7 +161,8 @@ FVC_HIGH_POWER_CHANNEL SNS_12V_Chan = {
 		.pin  = SNS_5V_Flt_2_LED_Pin
 	},
     .mode = NORMAL,
-	.hardware_state = LOW_POW_EFUSE_NO_FLT,
+	.enabled = FALSE,
+	.hardware_state = HIGH_POW_EFUSE_NO_FLT,
     .flt_state = FALSE,     
 	.trip_start_ms = 0,
     .retry_delay_ms = EFUSE_RETRY_DELAY_ms,
@@ -180,7 +185,8 @@ FVC_HIGH_POWER_CHANNEL DISP_12V_Chan = {
 		.pin  = SWM_Flt_LED_Pin
 	},
     .mode = NORMAL,
-	.hardware_state = LOW_POW_EFUSE_NO_FLT,
+	.enabled = FALSE,
+	.hardware_state = HIGH_POW_EFUSE_NO_FLT,
     .flt_state = FALSE,     
 	.trip_start_ms = 0,
     .retry_delay_ms = EFUSE_RETRY_DELAY_ms,
@@ -294,6 +300,8 @@ void update_low_power_efuses(){
 			case NORMAL:
 				if (efuse->hardware_state == LOW_POW_EFUSE_FLT){
 					efuse->flt_state = TRUE;
+					efuse->enabled = FALSE;
+					HAL_GPIO_WritePin(efuse->enable_gpio.port, efuse->enable_gpio.pin, LOW_POW_EFUSE_DISABLED);
 					HAL_GPIO_WritePin(efuse->fault_LED_gpio.port, efuse->fault_LED_gpio.pin, ON);
 					efuse->trip_start_ms = HAL_GetTick();
 					efuse->mode = TRIPPED; 
@@ -307,6 +315,8 @@ void update_low_power_efuses(){
 				}
 				else if (ready_to_retry){
 					efuse->flt_state = FALSE;
+					efuse->enabled = TRUE;
+					HAL_GPIO_WritePin(efuse->enable_gpio.port, efuse->enable_gpio.pin, LOW_POW_EFUSE_ENABLED);
 					HAL_GPIO_WritePin(efuse->fault_LED_gpio.port, efuse->fault_LED_gpio.pin, OFF);
 					efuse->retries_left--;
 					efuse->mode = NORMAL;
@@ -331,12 +341,16 @@ void update_high_power_efuses(){
 				// thermal shutdown
 				if (efuse->hardware_state == HIGH_POW_EFUSE_FLT){
 					efuse->flt_state = TRUE;
+					efuse->enabled = FALSE;
 					efuse->retries_left = 0;
+					HAL_GPIO_WritePin(efuse->enable_gpio.port, efuse->enable_gpio.pin, HIGH_POW_EFUSE_DISABLED);
 					HAL_GPIO_WritePin(efuse->fault_LED_gpio.port, efuse->fault_LED_gpio.pin, ON);
 					efuse->mode = SHUTDOWN;
 				}
-				if (efuse->amp_can_param->data > efuse->amp_max){
+				else if (efuse->amp_can_param->data > efuse->amp_max){
 					efuse->flt_state = TRUE;
+					efuse->enabled = FALSE;
+					HAL_GPIO_WritePin(efuse->enable_gpio.port, efuse->enable_gpio.pin, HIGH_POW_EFUSE_DISABLED);
 					HAL_GPIO_WritePin(efuse->fault_LED_gpio.port, efuse->fault_LED_gpio.pin, ON);
 					efuse->trip_start_ms = HAL_GetTick();
 					efuse->mode = TRIPPED; 
@@ -350,6 +364,8 @@ void update_high_power_efuses(){
 				}
 				else if (ready_to_retry){
 					efuse->flt_state = FALSE;
+					efuse->enabled = TRUE;
+					HAL_GPIO_WritePin(efuse->enable_gpio.port, efuse->enable_gpio.pin, HIGH_POW_EFUSE_ENABLED);
 					HAL_GPIO_WritePin(efuse->fault_LED_gpio.port, efuse->fault_LED_gpio.pin, OFF);
 					efuse->retries_left--;
 					efuse->mode = NORMAL;

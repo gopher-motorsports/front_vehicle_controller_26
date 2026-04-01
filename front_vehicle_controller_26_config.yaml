@@ -250,12 +250,12 @@ buckets:
                 sensor: NON_ADC
                 samples_buffered: 1
             fvcEfuse12VDispCurrent_A:
-                ADC: NON_ADC
-                sensor: NON_ADC
+                ADC: ADC1_IN8
+                sensor: fvc_efuse12V_Disp_current_reading
                 samples_buffered: 1
             fvcEfuse12VSNSCurrent_A:
-                ADC: NON_ADC
-                sensor: NON_ADC
+                ADC: ADC_IN9
+                sensor: fvc_efuse12V_SNS_current_reading
                 samples_buffered: 1
                 
             fvcGitBranchName:
