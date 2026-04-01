@@ -1,6 +1,7 @@
 #include "fvc.h"
 #include "conditions_and_utils.h"
 #include "fvc_software_faults.h"
+#include "git_info.h"
 
 #include <stdbool.h>
 #include <math.h>
@@ -41,6 +42,24 @@ void set_dash_lights(){
 		HAL_GPIO_WritePin(IMD_Dash_Light_GPIO_Port, IMD_Dash_Light_Pin, NMOS_ON);
 	else
 		HAL_GPIO_WritePin(IMD_Dash_Light_GPIO_Port, IMD_Dash_Light_Pin, NMOS_OFF);	
+}
+
+void init_git_LEDs(){
+	if(CURRENT_BRANCH_TYPE == BRANCH_TYPE_MAIN){
+		HAL_GPIO_WritePin(GIT_Main_GPIO_Port, GIT_Main_Pin,    ON);
+		HAL_GPIO_WritePin(GIT_Feature_GPIO_Port, GIT_Main_Pin, OFF);
+		HAL_GPIO_WritePin(GIT_Other_GPIO_Port, GIT_Other_Pin,  OFF);
+	}
+	else if (CURRENT_BRANCH == BRANCH_TYPE_FEATURE){
+		HAL_GPIO_WritePin(GIT_Main_GPIO_Port, GIT_Main_Pin,    OFF);
+		HAL_GPIO_WritePin(GIT_Feature_GPIO_Port, GIT_Main_Pin, ON);
+		HAL_GPIO_WritePin(GIT_Other_GPIO_Port, GIT_Other_Pin,  OFF);
+	}
+	else{
+		HAL_GPIO_WritePin(GIT_Main_GPIO_Port, GIT_Main_Pin,    OFF);
+		HAL_GPIO_WritePin(GIT_Feature_GPIO_Port, GIT_Main_Pin, OFF);
+		HAL_GPIO_WritePin(GIT_Other_GPIO_Port, GIT_Other_Pin,  ON);
+	}
 }
 // ==============================================================================================
 

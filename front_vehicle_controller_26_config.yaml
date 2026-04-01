@@ -249,3 +249,22 @@ buckets:
                 ADC: NON_ADC
                 sensor: NON_ADC
                 samples_buffered: 1
+            
+            fvcGitBranchName:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcGitHash_decimal:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcGitHasUncommitedChanges:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcGitTotalUncommitedChanges:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+
+            

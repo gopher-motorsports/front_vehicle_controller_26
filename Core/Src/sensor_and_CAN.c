@@ -3,6 +3,7 @@
 #include "sensor_and_CAN.h"
 #include "conditions_and_utils.h"
 #include "fvc_software_faults.h"
+#include "git_info.h"
 
 void update_non_ADC_CAN_params(){
 	// ADC Params Automatically Queued via gophersense
@@ -142,6 +143,13 @@ void update_non_ADC_CAN_params(){
 
 	// Efuse Fault States
 	// TODO for Efuse Task
+
+	// Git Data
+	update_and_queue_param_u8(&fvcGitBranchName, CURRENT_BRANCH);
+	update_and_queue_param_u32(&fvcGitHash_decimal, CURRENT_GIT_HASH_DECIMAL);
+	update_and_queue_param_u8(&fvcGitHasUncommitedChanges, CURRENT_GIT_HAS_CHANGES);
+	update_and_queue_param_u16(&fvcGitHasUncommitedChanges, CURRENT_GIT_CHANGES_COUNT);
+
 }
 
 float calc_pedal_percent(float pedalPos_mm, float min_position_mm, float total_range_mm){
