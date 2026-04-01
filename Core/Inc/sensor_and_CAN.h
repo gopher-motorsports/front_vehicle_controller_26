@@ -15,7 +15,6 @@ typedef enum {
 } DISPLAY_FAULT_STATUS_t;
 
 void update_non_ADC_CAN_params();
-void update_inverter_params();
 
 float calc_pedal_percent(float pedalPos_mm, float min_position_mm, float total_range_mm);
 float calc_wheel_m_per_s(float electrical_rpm);

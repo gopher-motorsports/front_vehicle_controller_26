@@ -6,7 +6,7 @@
 
 // LED Code
 #define HBEAT_LED_DELAY_TIME_ms 500
-void Hbeat_blink();
+void hbeat_blink();
 bool get_Hbeat_status();
 void set_dash_lights();
 
@@ -15,12 +15,10 @@ int16_t max4Ints(int16_t a, int16_t b, int16_t c, int16_t d);
 float clamp(float data, float min, float max);
 
 // Rules Required Faults
-bool is_vehicle_faulting();
 bool get_both_pedals_fault_state();
 
 // Inverter Limit Functions
 float calculate_dc_current_limit();
-void update_drive_control_inputs(bool *inverter_drive_enable);
 
 // Inverter Condition Functions
 bool predrive_conditions_met();

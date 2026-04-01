@@ -54,18 +54,28 @@ TIM_HandleTypeDef htim10;
 
 UART_HandleTypeDef huart2;
 
-osThreadId mainTaskHandle;
-uint32_t mainTaskBuffer[ 1024 ];
-osStaticThreadDef_t mainTaskControlBlock;
-osThreadId gcanTaskHandle;
-uint32_t gcanTaskBuffer[ 1024 ];
-osStaticThreadDef_t gcanTaskControlBlock;
 osThreadId idleTaskHandle;
 uint32_t idleTaskBuffer[ 256 ];
 osStaticThreadDef_t idleTaskControlBlock;
+osThreadId gcanTaskHandle;
+uint32_t gcanTaskBuffer[ 1024 ];
+osStaticThreadDef_t gcanTaskControlBlock;
+osThreadId debugTaskHandle;
+uint32_t debugTaskBuffer[ 2048 ];
+osStaticThreadDef_t debugTaskControlBlock;
 osThreadId driveTaskHandle;
-uint32_t driveTaskBuffer[ 1024 ];
+uint32_t driveTaskBuffer[ 2048 ];
 osStaticThreadDef_t driveTaskControlBlock;
+osThreadId faultTaskHandle;
+uint32_t faultTaskBuffer[ 1024 ];
+osStaticThreadDef_t faultTaskControlBlock;
+osThreadId telemetryTaskHandle;
+uint32_t telemetryTaskBuffer[ 2048 ];
+osStaticThreadDef_t telemetryTaskControlBlock;
+osMutexId fvcDriveSensorsMutexHandle;
+osStaticMutexDef_t fvcDriveSensorsMutexControlBlock;
+osMutexId driveSnapshotMutexHandle;
+osStaticMutexDef_t driveSnapshotMutexControlBlock;
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -81,10 +91,12 @@ static void MX_TIM10_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_CAN1_Init(void);
 static void MX_CAN3_Init(void);
-void main_task(void const * argument);
+void idleTask_entry(void const * argument);
 void gcan_buffer_task(void const * argument);
-void StartTask03(void const * argument);
-void StartTask04(void const * argument);
+void debugTask_entry(void const * argument);
+void driveTask_entry(void const * argument);
+void faultTask_entry(void const * argument);
+void telemetryTask_entry(void const * argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -139,6 +151,15 @@ int main(void)
   gsense_init(&hcan2, &hadc1, NULL, NULL, &htim10, Gsense_GPIO_Port, Gsense_Pin);
   /* USER CODE END 2 */
 
+  /* Create the mutex(es) */
+  /* definition and creation of fvcDriveSensorsMutex */
+  osMutexStaticDef(fvcDriveSensorsMutex, &fvcDriveSensorsMutexControlBlock);
+  fvcDriveSensorsMutexHandle = osMutexCreate(osMutex(fvcDriveSensorsMutex));
+
+  /* definition and creation of driveSnapshotMutex */
+  osMutexStaticDef(driveSnapshotMutex, &driveSnapshotMutexControlBlock);
+  driveSnapshotMutexHandle = osMutexCreate(osMutex(driveSnapshotMutex));
+
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
@@ -156,21 +177,29 @@ int main(void)
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* definition and creation of mainTask */
-  osThreadStaticDef(mainTask, main_task, osPriorityNormal, 0, 1024, mainTaskBuffer, &mainTaskControlBlock);
-  mainTaskHandle = osThreadCreate(osThread(mainTask), NULL);
+  /* definition and creation of idleTask */
+  osThreadStaticDef(idleTask, idleTask_entry, osPriorityIdle, 0, 256, idleTaskBuffer, &idleTaskControlBlock);
+  idleTaskHandle = osThreadCreate(osThread(idleTask), NULL);
 
   /* definition and creation of gcanTask */
   osThreadStaticDef(gcanTask, gcan_buffer_task, osPriorityAboveNormal, 0, 1024, gcanTaskBuffer, &gcanTaskControlBlock);
   gcanTaskHandle = osThreadCreate(osThread(gcanTask), NULL);
 
-  /* definition and creation of idleTask */
-  osThreadStaticDef(idleTask, StartTask03, osPriorityIdle, 0, 256, idleTaskBuffer, &idleTaskControlBlock);
-  idleTaskHandle = osThreadCreate(osThread(idleTask), NULL);
+  /* definition and creation of debugTask */
+  osThreadStaticDef(debugTask, debugTask_entry, osPriorityBelowNormal, 0, 2048, debugTaskBuffer, &debugTaskControlBlock);
+  debugTaskHandle = osThreadCreate(osThread(debugTask), NULL);
 
   /* definition and creation of driveTask */
-  osThreadStaticDef(driveTask, StartTask04, osPriorityHigh, 0, 1024, driveTaskBuffer, &driveTaskControlBlock);
+  osThreadStaticDef(driveTask, driveTask_entry, osPriorityHigh, 0, 2048, driveTaskBuffer, &driveTaskControlBlock);
   driveTaskHandle = osThreadCreate(osThread(driveTask), NULL);
+
+  /* definition and creation of faultTask */
+  osThreadStaticDef(faultTask, faultTask_entry, osPriorityNormal, 0, 1024, faultTaskBuffer, &faultTaskControlBlock);
+  faultTaskHandle = osThreadCreate(osThread(faultTask), NULL);
+
+  /* definition and creation of telemetryTask */
+  osThreadStaticDef(telemetryTask, telemetryTask_entry, osPriorityAboveNormal, 0, 2048, telemetryTaskBuffer, &telemetryTaskControlBlock);
+  telemetryTaskHandle = osThreadCreate(osThread(telemetryTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -672,21 +701,21 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE END 4 */
 
-/* USER CODE BEGIN Header_main_task */
+/* USER CODE BEGIN Header_idleTask_entry */
 /**
-  * @brief  Function implementing the mainTask thread.
+  * @brief  Function implementing the idleTask thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_main_task */
-void main_task(void const * argument)
+/* USER CODE END Header_idleTask_entry */
+void idleTask_entry(void const * argument)
 {
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
   for(;;)
   {
-    main_loop();
-    osDelay(1);
+    idle_task();
+    osDelay(IDLE_TASK_PERIOD_ms);
   }
   /* USER CODE END 5 */
 }
@@ -705,45 +734,85 @@ void gcan_buffer_task(void const * argument)
   for(;;)
   {
     can_buffer_handling_loop();
-    osDelay(1);
+    osDelay(GCAN_BUFFER_TASK_PERIOD_ms);
   }
   /* USER CODE END gcan_buffer_task */
 }
 
-/* USER CODE BEGIN Header_StartTask03 */
+/* USER CODE BEGIN Header_debugTask_entry */
 /**
-* @brief Function implementing the idleTask thread.
+* @brief Function implementing the debugTask thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_StartTask03 */
-void StartTask03(void const * argument)
+/* USER CODE END Header_debugTask_entry */
+void debugTask_entry(void const * argument)
 {
-  /* USER CODE BEGIN StartTask03 */
+  /* USER CODE BEGIN debugTask_entry */
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    debug_task();
+    osDelay(DEBUG_TASK_PERIOD_ms);
   }
-  /* USER CODE END StartTask03 */
+  /* USER CODE END debugTask_entry */
 }
 
-/* USER CODE BEGIN Header_StartTask04 */
+/* USER CODE BEGIN Header_driveTask_entry */
 /**
 * @brief Function implementing the driveTask thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_StartTask04 */
-void StartTask04(void const * argument)
+/* USER CODE END Header_driveTask_entry */
+void driveTask_entry(void const * argument)
 {
-  /* USER CODE BEGIN StartTask04 */
+  /* USER CODE BEGIN driveTask_entry */
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    drive_task();
+    osDelay(DRIVE_TASK_PERIOD_ms);
   }
-  /* USER CODE END StartTask04 */
+  /* USER CODE END driveTask_entry */
+}
+
+/* USER CODE BEGIN Header_faultTask_entry */
+/**
+* @brief Function implementing the faultTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_faultTask_entry */
+void faultTask_entry(void const * argument)
+{
+  /* USER CODE BEGIN faultTask_entry */
+  /* Infinite loop */
+  for(;;)
+  {
+    fault_task();
+    osDelay(FAULT_TASK_PERIOD_ms);
+  }
+  /* USER CODE END faultTask_entry */
+}
+
+/* USER CODE BEGIN Header_telemetryTask_entry */
+/**
+* @brief Function implementing the telemetryTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_telemetryTask_entry */
+void telemetryTask_entry(void const * argument)
+{
+  /* USER CODE BEGIN telemetryTask_entry */
+  /* Infinite loop */
+  for(;;)
+  {
+    telemetry_task();
+    osDelay(TELEMETRY_TASK_PERIOD_ms);
+  }
+  /* USER CODE END telemetryTask_entry */
 }
 
  /* MPU Configuration */
