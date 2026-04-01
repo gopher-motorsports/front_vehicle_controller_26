@@ -31,12 +31,18 @@ def get_all_branches():
 
         if branch == "origin":
             continue
-        
+
         if "->" in branch:
+            continue
+
+        if branch == "HEAD" or branch.endswith("/HEAD"):
             continue
 
         if branch.startswith("origin/"):
             branch = branch[len("origin/"):]
+
+        if branch == "HEAD":
+            continue
 
         if branch not in seen:
             seen.add(branch)
@@ -67,10 +73,19 @@ def get_git_hash_short():
 def git_hash_to_int(hash_str):
     if not hash_str:
         return 0
+
     try:
         return int(hash_str, 16)
     except ValueError:
         return 0
+
+
+def get_git_changes_count():
+    output = run_git_command(["status", "--porcelain"])
+    if output is None or not output:
+        return 0
+
+    return len(output.splitlines())
 
 
 def branch_sort_key(branch):
@@ -113,6 +128,9 @@ def generate_header(output_path):
     git_hash_dec = git_hash_to_int(git_hash_short)
     git_hash_hex = f"0x{git_hash_dec:X}"
 
+    changes_count = get_git_changes_count()
+    has_changes = "true" if changes_count > 0 else "false"
+
     enum_entries = []
     used_names = set()
     branch_to_enum = {}
@@ -140,6 +158,8 @@ def generate_header(output_path):
     lines.append("#ifndef GIT_INFO_H")
     lines.append("#define GIT_INFO_H")
     lines.append("")
+    lines.append("#include <stdbool.h>")
+    lines.append("")
     lines.append("typedef enum {")
 
     for i, enum_name in enumerate(enum_entries):
@@ -149,8 +169,10 @@ def generate_header(output_path):
     lines.append("} branch_t;")
     lines.append("")
     lines.append(f"#define CURRENT_BRANCH {current_enum}")
-    lines.append(f"#define BUILD_GIT_HASH_HEX {git_hash_hex}")
-    lines.append(f"#define BUILD_GIT_HASH_DEC {git_hash_dec}")
+    lines.append(f"#define CURRENT_GIT_HASH_HEX {git_hash_hex}")
+    lines.append(f"#define CURRENT_GIT_HASH_DECIMAL {git_hash_dec}")
+    lines.append(f"#define CURRENT_GIT_HAS_CHANGES {has_changes}")
+    lines.append(f"#define CURRENT_GIT_CHANGES_COUNT {changes_count}")
     lines.append("")
     lines.append("#endif")
 
