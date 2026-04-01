@@ -63,7 +63,11 @@ buckets:
                 ADC: NON_ADC
                 sensor: NON_ADC
                 samples_buffered: 1
-            fvcDriveControlTimestepStart_ms:
+            fvcDriveControlTickStart_ms:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            fvcDriveControlTickEnd_ms:
                 ADC: NON_ADC
                 sensor: NON_ADC
                 samples_buffered: 1

@@ -1,5 +1,7 @@
 #include "fvc.h"
+#include "sensor_and_CAN.h"
 #include "conditions_and_utils.h"
+#include "fvc_software_faults.h"
 
 // the HAL_CAN struct. This example only works for a single CAN bus
 CAN_HandleTypeDef* CAN_CARSIDE;
@@ -8,17 +10,28 @@ CAN_HandleTypeDef* CAN_REAR_INVERTERS;
 
 // Inverter State Machine Defines:
 uint32_t preDriveStart_ms;
-uint32_t drive_control_timestep_start;
-bool global_inverter_enable;
+
+uint32_t drive_control_start_tick_local;
+uint32_t drive_control_end_tick_local;
+uint32_t drive_timestep_number_local;
+
+VEHICLE_STATE_t vehicle_state;
+FVC_DRIVE_SENSOR_DATA fvc_drive_sensor_data_global;
+DRIVE_CONTROL_SNAPSHOT drive_snapshot;
+
+bool all_inverter_enable; // enable for all 4 inverters in this case
+bool slow_mode;
 
 DRIVE_CONTROL_INPUTS open_diff_inputs = {
 	.slip_tract_limit_percent = TRACTION_LIMIT_percent,
 	.car_speed      = 0.0,
-	.wheel_speed_FL = 0.0,
-	.wheel_speed_FR = 0.0,
-	.wheel_speed_RL = 0.0,
-	.wheel_speed_RR = 0.0,
-	.throttle_percent = 0.0,
+	.fvc_drive_sensor_data = {
+		.wheel_speed_FL = 0.0,
+		.wheel_speed_FR = 0.0,
+		.wheel_speed_RL = 0.0,
+		.wheel_speed_RR = 0.0,
+		.throttle_percent = 0.0
+	},
 	.tauMaxLimit_Nm = MOTOR_MAX_TORQUE_Nm,
 	.ac_currentMaxLimit_Apk = 0.0,
 	.dc_currentMaxlimit_A = 0.0,
@@ -58,7 +71,7 @@ void init_fvc(CAN_HandleTypeDef* BUS_1, CAN_HandleTypeDef* BUS_2, CAN_HandleType
 }
 
 
-// can_buffer_handling_loop
+// ======================================== FVC FreeRTOS Tasks ======================================================
 void can_buffer_handling_loop()
 {
 	// handle each RX message in the buffer
@@ -70,17 +83,27 @@ void can_buffer_handling_loop()
 	service_can_tx(CAN_REAR_INVERTERS);
 }
 
-
-// main_loop
-// called every 1ms
-void main_loop()
-{
-	Hbeat_blink();
+void idle_task(){
+	hbeat_blink();
 }
 
-// ======================================== Inverter State Machine Getters/Setters ======================================================
-uint32_t get_drive_control_timestep_start(){
-	return drive_control_timestep_start;
+void debug_task(){
+	// TODO add UART functionality here
+}
+
+void drive_task(){
+	process_inverter();
+}
+
+void fault_task(){
+	update_fault_data();
+	update_rules_fault_state();
+	update_efuse_fault_states();
+	set_dash_lights();
+}
+
+void telemetry_task(){
+	update_non_ADC_CAN_params();
 }
 
 // ======================================== Inverter State Machine ======================================================
@@ -91,8 +114,6 @@ void process_inverter() {
 	else if (inverter_fault_active()){
 		vehicle_state = VEHICLE_FAULT;
 	}
-
-	update_drive_control_inputs(&global_inverter_enable);
 
 	switch (vehicle_state)
 	{
@@ -131,7 +152,7 @@ void process_inverter() {
 		break;
 
 	case VEHICLE_DRIVING:
-		drive_control_timestep_start = HAL_GetTick();
+		
 		break;
 
 	default:
@@ -139,6 +160,55 @@ void process_inverter() {
 		break;
 	}
 
-	// send the current request
-	//update_inverter_params(vehicle_state, desiredCurrent_A, maxcurrentLimit_A, 200, vehicle_state == VEHICLE_DRIVING);
+	update_drive_inputs();
+	run_simulink_model_and_update_drive_outputs();
+	publish_drive_control_snapshot();
+}
+
+
+/// ======================================== Inverter Controls Functions ======================================================
+//In FVC.c to be explicit about producer/consumer data relationships
+void update_drive_inputs(){
+	open_diff_inputs.car_speed      = vnavVelBodyX.data;
+
+	osMutexWait(fvcDriveSensorsMutexHandle, osWaitForever);
+	open_diff_inputs.fvc_drive_sensor_data = fvc_drive_sensor_data_global;
+	osMutexRelease(fvcDriveSensorsMutexHandle);
+
+	// Current Limits + Enable
+	float max_AC_inv_limit = (slow_mode) ? AC_CURRENT_SLOW_MODE_MAX_Apk : AC_CURRENT_LIMIT_AT_MAX_PACK_VOLTAGE_Apk;
+	if (vehicle_state != VEHICLE_DRIVING){
+		open_diff_inputs.ac_currentMaxLimit_Apk = 0;
+		open_diff_inputs.dc_currentMaxlimit_A   = 0;
+		all_inverter_enable = FALSE; 
+	}
+	else{
+		open_diff_inputs.ac_currentMaxLimit_Apk = get_rules_fault_state() ? 0 : max_AC_inv_limit;
+		open_diff_inputs.dc_currentMaxlimit_A = calculate_dc_current_limit();
+		all_inverter_enable = TRUE; 
+	}
+	
+	drive_control_start_tick_local = HAL_GetTick();
+}
+
+void run_simulink_model_and_update_drive_outputs(){
+	drive_control_end_tick_local = HAL_GetTick();
+	drive_timestep_number_local++;
+}
+
+void publish_drive_control_snapshot(){
+	DRIVE_CONTROL_SNAPSHOT drive_snapshot_local;
+
+	drive_snapshot_local.drive_control_inputs  	  = open_diff_inputs;
+	drive_snapshot_local.drive_control_outputs 	  = open_diff_outputs;
+	drive_snapshot_local.drive_control_start_tick = drive_control_start_tick_local;
+	drive_snapshot_local.drive_control_end_tick   = drive_control_end_tick_local;
+	drive_snapshot_local.drive_enable_state	   	  = all_inverter_enable;
+	drive_snapshot_local.drive_vehicle_state	  = vehicle_state;
+	drive_snapshot_local.drive_timestep_number	  = drive_timestep_number_local;
+	
+	osMutexWait(driveSnapshotMutexHandle, osWaitForever);
+	drive_snapshot = drive_snapshot_local;
+	osMutexRelease(driveSnapshotMutexHandle);
+
 }

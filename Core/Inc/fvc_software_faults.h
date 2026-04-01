@@ -12,10 +12,20 @@ typedef struct {
     uint16_t fault_timer;
     uint16_t input_delay_threshold;
     bool state;
-    U8_CAN_STRUCT * can_param;
 } SOFTWARE_FAULT;
 
 extern SOFTWARE_FAULT* TIMED_SOFTWARE_FAULTS[NUM_OF_TIMED_FAULTS];
-void update_struct_fault_data();
 
+// Rules Requried + Efuse Data
+void update_fault_data();
+
+// Rules Required Check
+void update_rules_fault_state();
+
+// Rules Required Getters
+bool get_both_pedals_fault_state();
+bool get_rules_fault_state();
+
+// Efuse Fault States
+void update_efuse_fault_states();
 #endif /* INC_FVC_SOFTWARE_FAULTS_H_ */
