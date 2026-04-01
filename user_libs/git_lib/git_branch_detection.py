@@ -1,0 +1,310 @@
+import re
+import subprocess
+from pathlib import Path
+
+OUTPUT_FILE = Path("../../Core/Inc/git_info.h")
+README_FILE = Path("../../README.md")
+
+
+def run_git_command(args):
+    try:
+        return subprocess.check_output(
+            ["git"] + args,
+            text=True,
+            stderr=subprocess.DEVNULL
+        ).strip()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
+
+
+def get_all_branches():
+    output = run_git_command(["branch", "-a", "--format=%(refname:short)"])
+    if not output:
+        return []
+
+    branches = []
+    seen = set()
+
+    for line in output.splitlines():
+        branch = line.strip()
+        if not branch:
+            continue
+
+        if branch == "origin":
+            continue
+
+        if "->" in branch:
+            continue
+
+        if branch == "HEAD" or branch.endswith("/HEAD"):
+            continue
+
+        if branch.startswith("origin/"):
+            branch = branch[len("origin/"):]
+
+        if branch == "HEAD":
+            continue
+
+        if branch not in seen:
+            seen.add(branch)
+            branches.append(branch)
+
+    return branches
+
+
+def get_current_branch():
+    branch = run_git_command(["branch", "--show-current"])
+    if branch:
+        return branch
+
+    branch = run_git_command(["rev-parse", "--abbrev-ref", "HEAD"])
+    if not branch or branch == "HEAD":
+        return None
+
+    if branch.startswith("origin/"):
+        branch = branch[len("origin/"):]
+
+    return branch
+
+
+def get_git_hash_short():
+    return run_git_command(["rev-parse", "--short", "HEAD"])
+
+
+def git_hash_to_int(hash_str):
+    if not hash_str:
+        return 0
+
+    try:
+        return int(hash_str, 16)
+    except ValueError:
+        return 0
+
+
+def get_git_changes_count():
+    output = run_git_command(["status", "--porcelain"])
+    if output is None or not output:
+        return 0
+
+    return len(output.splitlines())
+
+
+def get_branch_type(branch):
+    if not branch:
+        return "OTHER"
+
+    lower = branch.lower()
+
+    if lower == "main":
+        return "MAIN"
+
+    if lower.startswith("feature-") or lower.startswith("feature/"):
+        return "FEATURE"
+
+    return "OTHER"
+
+
+def branch_sort_key(branch):
+    branch_type = get_branch_type(branch)
+
+    if branch_type == "MAIN":
+        return (0, branch.lower())
+
+    if branch_type == "FEATURE":
+        return (1, branch.lower())
+
+    return (2, branch.lower())
+
+
+def sanitize_enum_name(branch):
+    name = branch.upper()
+
+    if name.startswith("FEATURE-"):
+        name = "FEATURE_" + name[len("FEATURE-"):]
+    elif name.startswith("FEATURE/"):
+        name = "FEATURE_" + name[len("FEATURE/"):]
+
+    name = re.sub(r"[^A-Z0-9]", "_", name)
+    name = re.sub(r"_+", "_", name).strip("_")
+
+    if not name:
+        name = "UNKNOWN"
+
+    if name[0].isdigit():
+        name = "_" + name
+
+    return name
+
+
+def make_unique_enum_name(branch, used_names):
+    enum_name = sanitize_enum_name(branch)
+
+    base_name = enum_name
+    suffix = 2
+    while enum_name in used_names:
+        enum_name = f"{base_name}_{suffix}"
+        suffix += 1
+
+    return enum_name
+
+
+def load_existing_mapping(readme_path):
+    branch_map = {}
+
+    if not readme_path.exists():
+        return branch_map
+
+    content = readme_path.read_text(encoding="utf-8")
+
+    pattern = re.compile(
+        r"^\|\s*(\d+)\s*\|\s*`([^`]+)`\s*\|\s*`([^`]+)`\s*\|\s*`([^`]+)`\s*\|$",
+        re.MULTILINE
+    )
+
+    for match in pattern.finditer(content):
+        branch_id = int(match.group(1))
+        enum_name = match.group(2)
+        branch_type = match.group(3)
+        branch_name = match.group(4)
+
+        branch_map[branch_name] = {
+            "id": branch_id,
+            "enum_name": enum_name,
+            "branch_type": branch_type,
+        }
+
+    return branch_map
+
+
+def merge_branch_mapping(existing_map, discovered_branches):
+    merged = dict(existing_map)
+
+    used_names = {entry["enum_name"] for entry in merged.values()}
+    next_id = 0
+    if merged:
+        next_id = max(entry["id"] for entry in merged.values()) + 1
+
+    new_branches = [b for b in discovered_branches if b not in merged]
+    new_branches = sorted(new_branches, key=branch_sort_key)
+
+    for branch in new_branches:
+        branch_type = get_branch_type(branch)
+        enum_name = make_unique_enum_name(branch, used_names)
+        used_names.add(enum_name)
+
+        merged[branch] = {
+            "id": next_id,
+            "enum_name": enum_name,
+            "branch_type": branch_type,
+        }
+        next_id += 1
+
+    return merged
+
+
+def get_sorted_mapping_entries(branch_map):
+    return sorted(branch_map.items(), key=lambda item: item[1]["id"])
+
+
+def write_readme(readme_path, branch_map):
+    lines = []
+    lines.append("# FVC Firmware")
+    lines.append("")
+    lines.append("## Git Branch Enum Mapping")
+    lines.append("")
+    lines.append("This file is auto-generated by the Git branch info script.")
+    lines.append("It is the persistent source of truth for branch enum numbering.")
+    lines.append("")
+    lines.append("## Branch Types")
+    lines.append("")
+    lines.append("- `MAIN`: branch name is exactly `main`")
+    lines.append("- `FEATURE`: branch name starts with `feature-` or `feature/`")
+    lines.append("- `OTHER`: any branch that is not `main` or `feature`")
+    lines.append("")
+    lines.append("## Branch Enum Table")
+    lines.append("")
+    lines.append("| Number | Enum Name | Branch Type | Branch Name |")
+    lines.append("|---:|---|---|---|")
+
+    for branch_name, entry in get_sorted_mapping_entries(branch_map):
+        lines.append(
+            f"| {entry['id']} | `{entry['enum_name']}` | `{entry['branch_type']}` | "
+            f"`{branch_name}` |"
+        )
+
+    lines.append("")
+    lines.append("## Notes")
+    lines.append("")
+    lines.append("- Existing branch numbers are preserved.")
+    lines.append("- Newly discovered branches are appended to the end.")
+    lines.append("- Removed branches are intentionally kept here so enum values stay stable over time.")
+    lines.append("")
+
+    readme_path.write_text("\n".join(lines), encoding="utf-8")
+    print(f"Generated {readme_path}")
+
+
+def generate_header(output_path, branch_map):
+    current_branch = get_current_branch()
+    current_branch_type = get_branch_type(current_branch)
+    git_hash_short = get_git_hash_short()
+
+    git_hash_dec = git_hash_to_int(git_hash_short)
+    git_hash_hex = f"0x{git_hash_dec:X}"
+
+    changes_count = get_git_changes_count()
+    has_changes = "true" if changes_count > 0 else "false"
+
+    sorted_entries = get_sorted_mapping_entries(branch_map)
+
+    current_enum = "UNKNOWN"
+    if current_branch in branch_map:
+        current_enum = branch_map[current_branch]["enum_name"]
+
+    lines = []
+    lines.append("#ifndef GIT_INFO_H")
+    lines.append("#define GIT_INFO_H")
+    lines.append("")
+    lines.append("#include <stdbool.h>")
+    lines.append("")
+    lines.append("typedef enum {")
+
+    for i, (_, entry) in enumerate(sorted_entries):
+        comma = "," if i < len(sorted_entries) - 1 else ""
+        lines.append(f"    {entry['enum_name']} = {entry['id']}{comma}")
+
+    if not sorted_entries:
+        lines.append("    UNKNOWN = 0")
+
+    lines.append("} branch_t;")
+    lines.append("")
+    lines.append("typedef enum {")
+    lines.append("    BRANCH_TYPE_MAIN = 0,")
+    lines.append("    BRANCH_TYPE_FEATURE = 1,")
+    lines.append("    BRANCH_TYPE_OTHER = 2")
+    lines.append("} branch_type_t;")
+    lines.append("")
+    lines.append(f"#define CURRENT_BRANCH {current_enum}")
+    lines.append(f"#define CURRENT_BRANCH_TYPE BRANCH_TYPE_{current_branch_type}")
+    lines.append(f"#define CURRENT_GIT_HASH_HEX {git_hash_hex}")
+    lines.append(f"#define CURRENT_GIT_HASH_DECIMAL {git_hash_dec}")
+    lines.append(f"#define CURRENT_GIT_HAS_CHANGES {has_changes}")
+    lines.append(f"#define CURRENT_GIT_CHANGES_COUNT {changes_count}")
+    lines.append("")
+    lines.append("#endif")
+
+    output_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print(f"Generated {output_path}")
+
+
+def main():
+    existing_map = load_existing_mapping(README_FILE)
+    discovered_branches = get_all_branches()
+    merged_map = merge_branch_mapping(existing_map, discovered_branches)
+
+    write_readme(README_FILE, merged_map)
+    generate_header(OUTPUT_FILE, merged_map)
+
+
+if __name__ == "__main__":
+    main()

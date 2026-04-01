@@ -68,6 +68,8 @@ void init_fvc(CAN_HandleTypeDef* BUS_1, CAN_HandleTypeDef* BUS_2, CAN_HandleType
 	init_can(CAN_CARSIDE, GCAN0);
 	init_can(CAN_FRONT_INVERTERS, GCAN1);
 	init_can(CAN_REAR_INVERTERS, GCAN2);
+
+	init_git_LEDs();
 }
 
 

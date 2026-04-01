@@ -11,3 +11,5 @@ CMakeCache.txt
 CMakePresets.json
 compile_commands.json
 startup_stm32f446xx.s
+
+Core/Inc/git_info.h

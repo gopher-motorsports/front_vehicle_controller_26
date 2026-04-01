@@ -24,6 +24,18 @@
         },
         {
             "type": "shell",
+            "label": "Build Git Version Files",
+            "command": "python",
+            "args": [
+                "git_branch_detection.py"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/user_libs/git_lib"
+            },
+            "problemMatcher": []
+        },
+        {
+            "type": "shell",
             "label": "Build Gopher Sense",
             "command": "python",
             "args": [
@@ -80,6 +92,7 @@
             "dependsOn": [
                 "Build GopherCAN",
                 "Build Gopher Sense",
+                "Build Git Version Files",
                 "CMake: clean rebuild"
             ],
             "problemMatcher": [],
