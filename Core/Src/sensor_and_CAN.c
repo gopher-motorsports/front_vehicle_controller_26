@@ -109,7 +109,7 @@ void update_non_ADC_CAN_params(){
 	last_drive_snapshot_local = drive_snapshot_local;
 
 	// Low Freqeuncy(5Hz):
-	// Brake Temps(ADC), Ride Height(ADC), Rules Required Flts, Display Flt, Hbeat Flt, SDC, Drive Speed Mode, Motor/Inv Temps, Efuse Flts
+	// Brake Temps(ADC), Ride Height(ADC), Rules Required Flts, Display Flt, Hbeat Flt, SDC, Drive Speed Mode, Motor/Inv Temps, Efuse Flts, Efuse Current (ADC)
 
 	// Rules Required Faults:
 	update_and_queue_param_u8(&fvcPedalPosition1RangeFault_state, 	   TIMED_SOFTWARE_FAULTS[0]->state);
@@ -142,7 +142,13 @@ void update_non_ADC_CAN_params(){
 	update_and_queue_param_float(&fvcMotorTemp_RR_C, motorTemp_RR_C.data);
 
 	// Efuse Fault States
-	// TODO for Efuse Task
+	update_and_queue_param_u8(&fvcEfuse3V3SNSFault_state, FVC_LOW_POWER_CHANNELS[0]->flt_state);
+	update_and_queue_param_u8(&fvcEfuse5VSNSFault1_state, FVC_LOW_POWER_CHANNELS[1]->flt_state);
+	update_and_queue_param_u8(&fvcEfuse5VSNSFault2_state, FVC_LOW_POWER_CHANNELS[2]->flt_state);
+	update_and_queue_param_u8(&fvcEfuse5VSWMFault_state,  FVC_LOW_POWER_CHANNELS[3]->flt_state);
+
+	update_and_queue_param_u8(&fvcEfuse12VSNSFault_state,  FVC_HIGH_POWER_CHANNELS[0]->flt_state);
+	update_and_queue_param_u8(&fvcEfuse12VDispFault_state, FVC_HIGH_POWER_CHANNELS[1]->flt_state);
 
 	// Git Data
 	update_and_queue_param_u8(&fvcGitBranchName, CURRENT_BRANCH);
