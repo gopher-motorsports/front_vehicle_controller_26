@@ -57,7 +57,9 @@ file(GLOB GOPHERCAN_SOURCES
 
 # Gather all gopher sense source files
 file(GLOB GOPHERSENSE_SOURCES
-    "${CMAKE_SOURCE_DIR}/../Gopher_Sense/lib/*.c"
+    # "${CMAKE_SOURCE_DIR}/../Gopher_Sense/lib/*.c"
+    "${CMAKE_SOURCE_DIR}/../Gopher_Sense/lib/adc_lib.c"
+    "${CMAKE_SOURCE_DIR}/../Gopher_Sense/lib/gopher_sense.c"
     "${CMAKE_SOURCE_DIR}/../Gopher_Sense/Build/*.c"
 )
 
