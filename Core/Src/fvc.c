@@ -48,14 +48,21 @@ void main_loop()
 // ======================================== Inverter State Machine Functions ======================================================
 void process_inverter() {
 
+	InverterComms_Status_t comms = get_inverter_comms_status();
 	if (!has_inverter_comms())
 		vehicle_state = VEHICLE_NO_COMMS;
 	else if (inverter_fault_active()){
 		vehicle_state = VEHICLE_FAULT;
 	}
+	// can having this before the switch case just be a catch all so i dont have to check inside of each case?
+	if(!comms.front_comms && !comms.rear_comms && comms.any_comms){
+			//should be only one inverter than 
+			vehicle_state = VEHICLE_FAULT;
+		}
+
 
 	determine_current_limits(&ac_currentLimit_Apk, &dc_currentlimit_A, vehicle_state);
-	InverterComms_Status_t comms = get_inverter_comms_status();
+	
 	
 	switch (vehicle_state)
 	{
@@ -104,10 +111,10 @@ void process_inverter() {
 	// Create a VEHCILE_FRONT_WHEEL_DRIVE, VEHCILE_REAR_WHEEL_DRIVE, VEHICLE_ALL_WHEEL_DRIVE
 	// Will need to pass to open diff/torque vectoring simulink controller which wheels should get power
 	
-	//create swich cases for the comms here?
+	
 	case VEHICLE_FWD:
 		if(comms.all_comms){
-			vehicle_state = VEHICLE_4WD;
+			vehicle_state = VEHICLE_4WD;	
 		} else if(comms.front_comms != 1){
 			vehicle_state = VEHICLE_RWD;
 		}
