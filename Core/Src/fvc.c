@@ -11,6 +11,8 @@ VEHICLE_STATE_t vehicle_state;
 uint32_t preDriveStart_ms;
 float ac_currentLimit_Apk;
 float dc_currentlimit_A;
+VEHICLE_STATE_t last_vehicle_state;
+VEHICLE_STATE_t target_vehicle_state;
 
 // Init FVC
 // What needs to happen on FVC startup 
@@ -49,6 +51,7 @@ void main_loop()
 void process_inverter() {
 
 	InverterComms_Status_t comms = get_inverter_comms_status();
+	InverterFault_Status_t fault = get_Inverter_Fault_Status();
 	if (!has_inverter_comms())
 		vehicle_state = VEHICLE_NO_COMMS;
 	else if (inverter_fault_active()){
@@ -113,35 +116,90 @@ void process_inverter() {
 	
 	
 	case VEHICLE_FWD:
-		if(comms.all_comms){
-			vehicle_state = VEHICLE_4WD;	
-		} else if(comms.front_comms != 1){
-			vehicle_state = VEHICLE_RWD;
+		if (!comms.any_comms|| (!comms.front_comms && !comms.rear_comms) || (fault.front && fault.rear) 
+		|| (fault.front && !comms.rear_comms) || (fault.rear && !comms.front_comms)){
+			vehicle_state = VEHICLE_FAULT; // immeadiately 
+		} 
+		else if(comms.all_comms && fault.any !=1){
+			target_vehicle_state = VEHICLE_4WD;	
+			vehicle_state = TRANSITION;
+		} else if(fault.front || !comms.front_comms){//already know that theres either front or rear comms and one is not faulted
+			target_vehicle_state = VEHICLE_RWD;
+			vehicle_State = TRANSITION;
 		}
+		last_vehicle_state = VEHICLE_FWD;
 		break;
 	case VEHICLE_RWD:
-		if(comms.all_comms){
-			vehicle_state = VEHICLE_4WD;
-			//send diff/torque inside if statements depending on which case
-		} else if(comms.rear_comms != 1){
-			vehicle_state = VEHICLE_FWD;
+		//draw out to make sure 
+		if (!comms.any_comms|| (!comms.front_comms && !comms.rear_comms) || (fault.front && fault.rear) 
+		|| (fault.front && !comms.rear_comms) || (fault.rear && !comms.front_comms)){
+			vehicle_state = VEHICLE_FAULT; // immeadiately 
+		} 
+		else if(comms.all_comms && fault.any !=1){
+			target_vehicle_State = VEHICLE_4WD;
+			vehicle_state = TRANSITION;
 		}
+		else if(comms.rear_comms != 1 || fault.rear){//already checked that both front and rear are not both faulted
+			target_vehicle_state = VEHICLE_FWD;
+			vehicle_state = TRANSITION;
+		}
+		last_vehicle_state = VEHICLE_RWD;
 		break;
 	case VEHICLE_4WD:
-		if(comms.all_comms !=1){
-			if(comms.front_comms){
-				vehicle_state = VEHICLE_FWD;
-			} else {
-				vehicle_state = VEHICLE_RWD;
+		if(comms.all_comms !=1 || fault.any == 1){
+			bool one_comm = (!comms.front_comms && !comms.rear_comms && comms.any_comms)
+			bool no_comms = (!comms.any_comms)
+			bool no_front_comms_live = comms.front_comms;
+			bool no_rear_comms_live = comms.rear_comms;
+
+			if(one_comm || no_comms || (no_front_comms_live || no_rear_comms_live) || (fault.front && fault.rear)){
+				vehicle_state = VEHICLE_FAULT; //immediately
+			}
+			else if(comms.front_comms || fault.rear == 1){
+				target_vehicle_state = VEHICLE_FWD;
+				vehicle_state = TRANSITION;
+			} else if (comms.rear_comms || fault.front == 1){
+				target_vehicle_state = VEHICLE_RWD;
+				vehicle_state = TRANSITION;
 			}
 		}
+		last_vehicle_state = VEHICLE_4WD;
+		
 		break;
+	
+	case TRANSITION:
+		if(HAL_getTick() - last_trans_time > 5000){ //give time to react
+			if(targe_vehicle_state == VEHICLE_4WD){
+				if(last_vehicle_state == RWD){
+					//print RWD->4WD
+				} else if(last_vehicle_state == FWD){
+					//print FWD -> 4WD
+			}
+			else if(target_vehicle_state == VEHICLE_RWD){
+				if(last_vehicle_state == VEHICLE_4WD){
+					//print 4WD->RWD
+				}else if(last_vehicle_state == VEHICLE_FWD){
+					//print FWD->RWD
+				}
+
+			}else if(target_vehicle_state ==VEHIClE_FWD){
+				if(last_vehicle_state == VEHICLE_4WD){
+					//print 4WD->FWD
+				} else if(last_vehicle_state == VEHICLE_RWD){
+					//print RWD->FWD
+				}
+				
+			}
+			
+		}
 
 	default:
 		vehicle_state = VEHICLE_NO_COMMS;
 		break;
 	}
 
+	//very last line
+	vehicle_state = target_vehicle_state;
 	// send the current request
 	//update_inverter_params(vehicle_state, desiredCurrent_A, maxcurrentLimit_A, 200, vehicle_state == VEHICLE_DRIVING);
 }

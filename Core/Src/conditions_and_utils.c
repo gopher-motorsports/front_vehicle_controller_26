@@ -172,6 +172,29 @@ InverterComms_Status_t get_inverter_comms_status(){
 	return status;
 
 }
+typdef struct {
+	bool any;
+	bool rear;
+	bool front;
+	bool all;
+} InverterFault_Status_t
+
+InverterFault_Status_t get_Inverter_Fault_Status(){
+	InverterFault_Status_t fStatus = {0};
+	bool fl_Status = ((inv_fault_codes[0]->data & INVERTER_OV_FAULT) || (inv_fault_codes[0]->data & INVERTER_UV_FAULT) || (inv_fault_codes[0]->data & INVERTER_CTRL_TEMP_FAULT) || (inv_fault_codes[0]->data & INVERTER_MOTOR_TEMP_FAULT));
+	bool fr_Status = ((inv_fault_codes[1]->data & INVERTER_OV_FAULT) || (inv_fault_codes[1]->data & INVERTER_UV_FAULT) || (inv_fault_codes[1]->data & INVERTER_CTRL_TEMP_FAULT) || (inv_fault_codes[1]->data & INVERTER_MOTOR_TEMP_FAULT));
+	bool rl_Status = ((inv_fault_codes[2]->data & INVERTER_OV_FAULT) || (inv_fault_codes[2]->data & INVERTER_UV_FAULT) || (inv_fault_codes[2]->data & INVERTER_CTRL_TEMP_FAULT) || (inv_fault_codes[2]->data & INVERTER_MOTOR_TEMP_FAULT));
+	bool fl_Status = ((inv_fault_codes[3]->data & INVERTER_OV_FAULT) || (inv_fault_codes[3]->data & INVERTER_UV_FAULT) || (inv_fault_codes[3]->data & INVERTER_CTRL_TEMP_FAULT) || (inv_fault_codes[3]->data & INVERTER_MOTOR_TEMP_FAULT));
+
+	fStatus.any = (fl_Status || fr_Status || rl_Status || rr_Status);
+	fStatus.front = (fl_Status && fr_Status);
+	fStatus.rear = (rl_Status && rr_Status);
+	fStatus.all = (fStatus.front && fStatus.rear);
+
+	return fStatus;
+
+}
+
 
 bool has_inverter_comms(){
 	uint32_t time_stamp = HAL_GetTick();

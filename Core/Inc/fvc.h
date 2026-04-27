@@ -67,6 +67,7 @@ typedef enum
 	VEHICLE_4WD 	  = 4, // Torque commands are actively being sent from APPS positions
 	VEHICLE_FWD 	  = 5;
 	VEHICLE_RWD 	  = 6;
+	TRANSITION 		  = 7;
 } VEHICLE_STATE_t;
 
 void init_fvc(CAN_HandleTypeDef* BUS_1, CAN_HandleTypeDef* BUS_2, CAN_HandleTypeDef* BUS_3);
