@@ -33,7 +33,7 @@ bool get_Hbeat_status(){
 // If AMS(means BMS) fault --> BMS light goes on
 // If IMD Fault --> IMD Fault Goes on
 void set_dash_lights(){
-	if(amsFault_state.data)
+	if(bmsFault_state.data)
 		HAL_GPIO_WritePin(BMS_Dash_Light_GPIO_Port, BMS_Dash_Light_Pin, NMOS_ON);
 	else
 		HAL_GPIO_WritePin(BMS_Dash_Light_GPIO_Port, BMS_Dash_Light_Pin, NMOS_OFF);

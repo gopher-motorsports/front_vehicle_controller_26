@@ -26,4 +26,6 @@ bool has_inverter_comms();
 bool inverter_fault_active();
 bool get_slow_mode_status();
 
+// Git LEDs
+void init_git_LEDs();
 #endif /* INC_CONDITIONS_AND_UTILS_H_ */
