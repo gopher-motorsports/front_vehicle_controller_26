@@ -254,7 +254,7 @@ buckets:
                 sensor: fvc_efuse12V_Disp_current_reading
                 samples_buffered: 1
             fvcEfuse12VSNSCurrent_A:
-                ADC: ADC_IN9
+                ADC: ADC1_IN9
                 sensor: fvc_efuse12V_SNS_current_reading
                 samples_buffered: 1
                 

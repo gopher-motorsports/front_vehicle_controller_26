@@ -149,16 +149,16 @@ FVC_LOW_POWER_CHANNEL* FVC_LOW_POWER_CHANNELS[] = {
 
 FVC_HIGH_POWER_CHANNEL SNS_12V_Chan = {
 	.enable_gpio = {
-		.port = SNS_5V_EN2_GPIO_Port,
-		.pin  = SNS_5V_EN2_Pin
+		.port = SNS_12V_EN_GPIO_Port,
+		.pin  = SNS_12V_EN_Pin
 	},
     .fault_gpio = {
-		.port = SNS_5V_Flt_2_GPIO_Port,
-		.pin  = SNS_5V_Flt_2_Pin
+		.port = SNS_12V_Flt_GPIO_Port,
+		.pin  = SNS_12V_Flt_Pin
 	},
     .fault_LED_gpio = {
-		.port = SNS_5V_Flt_2_LED_GPIO_Port,
-		.pin  = SNS_5V_Flt_2_LED_Pin
+		.port = SNS_12V_Flt_LED_GPIO_Port,
+		.pin  = SNS_12V_Flt_LED_Pin
 	},
     .mode = NORMAL,
 	.enabled = FALSE,
@@ -173,16 +173,16 @@ FVC_HIGH_POWER_CHANNEL SNS_12V_Chan = {
 
 FVC_HIGH_POWER_CHANNEL DISP_12V_Chan = {
 	.enable_gpio = {
-		.port = SWM_5V_EN_GPIO_Port,
-		.pin  = SWM_5V_EN_Pin
+		.port = DISP_12V_EN_GPIO_Port,
+		.pin  = DISP_12V_EN_Pin
 	},
     .fault_gpio = {
-		.port = SWM_5V_Flt_GPIO_Port,
-		.pin  = SWM_5V_Flt_Pin
+		.port = DISP_12V_Flt_GPIO_Port,
+		.pin  = DISP_12V_Flt_Pin
 	},
     .fault_LED_gpio = {
-		.port = SWM_Flt_LED_GPIO_Port,
-		.pin  = SWM_Flt_LED_Pin
+		.port = DISP_FLT_LED_GPIO_Port,
+		.pin  = DISP_FLT_LED_Pin
 	},
     .mode = NORMAL,
 	.enabled = FALSE,
@@ -298,6 +298,7 @@ void update_low_power_efuses(){
 
 		switch(efuse->mode){
 			case NORMAL:
+				efuse->hardware_state = HAL_GPIO_ReadPin(efuse->fault_gpio.port, efuse->fault_gpio.pin);
 				if (efuse->hardware_state == LOW_POW_EFUSE_FLT){
 					efuse->flt_state = TRUE;
 					efuse->enabled = FALSE;

@@ -8,7 +8,7 @@
 #define NUM_OF_LOW_POWER_CHANNELS 4
 #define NUM_OF_HIGH_POWER_CHANNELS 2
 #define TOTAL_EFUSE_RETRIES 3
-#define EFUSE_RETRY_DELAY_ms 1000
+#define EFUSE_RETRY_DELAY_ms 500
 
 #define LOW_POW_EFUSE_ENABLED  0
 #define LOW_POW_EFUSE_DISABLED 1
@@ -22,8 +22,9 @@
 #define HIGH_POW_EFUSE_FLT      0
 #define HIGH_POW_EFUSE_NO_FLT   1
 
-#define DISPLAY_CURRENT_LIMIT_A 0.600f
-#define SNS_12V_CURRENT_LIMIT_A 0.130f
+#define DISPLAY_CURRENT_LIMIT_A 0.800f // hardware limit = 914 mA --> 1k ILM Resistor, Actual Load = 385mA
+#define SNS_12V_CURRENT_LIMIT_A 0.100f // hardware limit = 157 mA --> 6.185k ILM Resistor, Actual Load = 6mA
+
 typedef struct {
 	float data;
     float max_threshold;
