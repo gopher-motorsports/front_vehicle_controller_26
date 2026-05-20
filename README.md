@@ -31,6 +31,7 @@ It is the persistent source of truth for branch enum numbering.
 | 13 | `FEATURE_TRACTIVE_SYSTEM_FAULTS` | `FEATURE` | `feature-Tractive-System-Faults` |
 | 14 | `FEATURE_UART_DEBUGGING` | `FEATURE` | `feature-UART-Debugging` |
 | 15 | `FEATURE_YAML_CONFIG` | `FEATURE` | `feature-Yaml-Config` |
+| 16 | `FEATURE_DRIVE_SENSOR_FAULT_LOGIC` | `FEATURE` | `feature-Drive-Sensor-Fault-Logic` |
 
 ## Notes
 
