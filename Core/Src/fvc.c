@@ -70,6 +70,7 @@ void init_fvc(CAN_HandleTypeDef* BUS_1, CAN_HandleTypeDef* BUS_2, CAN_HandleType
 	init_can(CAN_REAR_INVERTERS, GCAN2);
 
 	init_git_LEDs();
+	init_efuses();
 }
 
 
@@ -99,8 +100,8 @@ void drive_task(){
 
 void fault_task(){
 	update_fault_data();
-	update_rules_fault_state();
-	update_efuse_fault_states();
+	update_low_power_efuses();
+	update_high_power_efuses();
 	set_dash_lights();
 }
 
