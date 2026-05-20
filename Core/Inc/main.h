@@ -59,8 +59,6 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define BrakePress_Front_Pin GPIO_PIN_1
 #define BrakePress_Front_GPIO_Port GPIOC
-#define BrakeTravelPot_Pin GPIO_PIN_2
-#define BrakeTravelPot_GPIO_Port GPIOC
 #define ShockPot_FR_Pin GPIO_PIN_0
 #define ShockPot_FR_GPIO_Port GPIOA
 #define ShockPot_FL_Pin GPIO_PIN_1

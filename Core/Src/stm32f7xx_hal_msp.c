@@ -103,7 +103,6 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     __HAL_RCC_GPIOB_CLK_ENABLE();
     /**ADC1 GPIO Configuration
     PC1     ------> ADC1_IN11
-    PC2     ------> ADC1_IN12
     PA0/WKUP     ------> ADC1_IN0
     PA1     ------> ADC1_IN1
     PA2     ------> ADC1_IN2
@@ -115,7 +114,7 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     PB0     ------> ADC1_IN8
     PB1     ------> ADC1_IN9
     */
-    GPIO_InitStruct.Pin = BrakePress_Front_Pin|BrakeTravelPot_Pin|APPS2_Pin|RideHeight_Pin;
+    GPIO_InitStruct.Pin = BrakePress_Front_Pin|APPS2_Pin|RideHeight_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
@@ -176,7 +175,6 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc)
 
     /**ADC1 GPIO Configuration
     PC1     ------> ADC1_IN11
-    PC2     ------> ADC1_IN12
     PA0/WKUP     ------> ADC1_IN0
     PA1     ------> ADC1_IN1
     PA2     ------> ADC1_IN2
@@ -188,7 +186,7 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc)
     PB0     ------> ADC1_IN8
     PB1     ------> ADC1_IN9
     */
-    HAL_GPIO_DeInit(GPIOC, BrakePress_Front_Pin|BrakeTravelPot_Pin|APPS2_Pin|RideHeight_Pin);
+    HAL_GPIO_DeInit(GPIOC, BrakePress_Front_Pin|APPS2_Pin|RideHeight_Pin);
 
     HAL_GPIO_DeInit(GPIOA, ShockPot_FR_Pin|ShockPot_FL_Pin|Steering_Angle_Pin|APPS1_Pin
                           |BrakeTemp_FL_Pin|BrakeTemp_FR_Pin);

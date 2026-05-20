@@ -167,7 +167,7 @@ float calc_wheel_m_per_s(float electrical_rpm){
 
 DISPLAY_FAULT_STATUS_t determine_disp_fault_status() {
 	int status = NONE;
-	if(amsFault_state.data) status = AMS_FAULT;
+	if(bmsFault_state.data) status = AMS_FAULT;
 	else if (vehicle_state == VEHICLE_FAULT) status = INVERTER_FAULT;
 	else if(get_both_pedals_fault_state() == TRUE) status = RELEASE_PEDAL;
 	else if(rvcBspdFaultActive_state.data) status = BRAKING_FAULT;
