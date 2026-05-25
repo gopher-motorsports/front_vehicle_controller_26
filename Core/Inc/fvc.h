@@ -37,10 +37,10 @@
 //Thresholds for "fvc.software_faults.c" 
 #define INPUT_TRIP_DELAY_ms   85     // The amount of time it takes an input fault to take effect, margin from 100
 
-#define APPS_1_MAX_CURRENT_POS_mm  18.25f // The position of the pedal at 100% torque
-#define APPS_1_MIN_CURRENT_POS_mm  6.25f  // The position of the pedal at 0% torque
-#define APPS_2_MAX_CURRENT_POS_mm  17.50f // The position of the pedal at 100% torque
-#define APPS_2_MIN_CURRENT_POS_mm  4.50f  // The position of the pedal at 0% torque
+#define APPS_1_MAX_CURRENT_POS_mm  24.00f // The position of the pedal at 100% torque
+#define APPS_1_MIN_CURRENT_POS_mm  4.85f  // The position of the pedal at 0% torque, 3.85mm resting + 1mm = 4.85mm
+#define APPS_2_MAX_CURRENT_POS_mm  24.00f // The position of the pedal at 100% torque
+#define APPS_2_MIN_CURRENT_POS_mm  2.86f  // The position of the pedal at 0% torque, 1.86 mm resting + 1mm = 2.86mm
 #define APPS_1_TOTAL_TRAVEL_mm ( APPS_1_MAX_CURRENT_POS_mm - APPS_1_MIN_CURRENT_POS_mm )
 #define APPS_2_TOTAL_TRAVEL_mm ( APPS_2_MAX_CURRENT_POS_mm - APPS_2_MIN_CURRENT_POS_mm )
 

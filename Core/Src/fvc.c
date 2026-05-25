@@ -100,6 +100,7 @@ void drive_task(){
 
 void fault_task(){
 	update_fault_data();
+	update_rules_fault_state();
 	update_low_power_efuses();
 	update_high_power_efuses();
 	set_dash_lights();

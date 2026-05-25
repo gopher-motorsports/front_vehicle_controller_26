@@ -47,17 +47,17 @@ void set_dash_lights(){
 void init_git_LEDs(){
 	if(CURRENT_BRANCH_TYPE == BRANCH_TYPE_MAIN){
 		HAL_GPIO_WritePin(GIT_Main_GPIO_Port, GIT_Main_Pin,    ON);
-		HAL_GPIO_WritePin(GIT_Feature_GPIO_Port, GIT_Main_Pin, OFF);
+		HAL_GPIO_WritePin(GIT_Feature_GPIO_Port, GIT_Feature_Pin, OFF);
 		HAL_GPIO_WritePin(GIT_Other_GPIO_Port, GIT_Other_Pin,  OFF);
 	}
-	else if (CURRENT_BRANCH == BRANCH_TYPE_FEATURE){
+	else if (CURRENT_BRANCH_TYPE == BRANCH_TYPE_FEATURE){
 		HAL_GPIO_WritePin(GIT_Main_GPIO_Port, GIT_Main_Pin,    OFF);
-		HAL_GPIO_WritePin(GIT_Feature_GPIO_Port, GIT_Main_Pin, ON);
+		HAL_GPIO_WritePin(GIT_Feature_GPIO_Port, GIT_Feature_Pin, ON);
 		HAL_GPIO_WritePin(GIT_Other_GPIO_Port, GIT_Other_Pin,  OFF);
 	}
 	else{
 		HAL_GPIO_WritePin(GIT_Main_GPIO_Port, GIT_Main_Pin,    OFF);
-		HAL_GPIO_WritePin(GIT_Feature_GPIO_Port, GIT_Main_Pin, OFF);
+		HAL_GPIO_WritePin(GIT_Feature_GPIO_Port, GIT_Feature_Pin, OFF);
 		HAL_GPIO_WritePin(GIT_Other_GPIO_Port, GIT_Other_Pin,  ON);
 	}
 }
