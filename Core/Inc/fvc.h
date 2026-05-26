@@ -71,6 +71,12 @@
 #define INVERTER_MOTOR_TEMP_FAULT 0x05	// Inverter Motor Overtemp of user setpoint
 //Inverter Variables:
 
+// ============================= Drive Mode PARAMS =============================
+#define SLOW_MODE_BUTTON     	   swButon1_state
+#define DRIVE_MODEL_BUTTON         swButon5_state
+
+#define SLOW_MODE_HOLD_TIME_THRESH		2000
+#define DRIVE_MODEL_HOLD_TIME_THRESH 	1000
 // ============================= Drive Control PARAMS =============================
 #define TRACTION_LIMIT_percent    15.0f	// Past this wheel slip we have broken traction
 #define MOTOR_MAX_TORQUE_Nm	  36
@@ -93,6 +99,19 @@
 #define MATH_PI             3.14159265f
 #define SECONDS_PER_MINUTE	60.0f
 #define ERPM_TO_M_PER_S		(1.0f / MOTOR_POLE_PAIRS) * (1.0f / DRIVE_TRAIN_GEAR_RATIO) * (2.0f * WHEEL_RADIUS * MATH_PI) * (1.0f / SECONDS_PER_MINUTE)
+
+typedef enum
+{
+	FULL_POWER = 0,
+	SLOW 	   = 1
+} DRIVE_SPEED_MODE_t;
+
+typedef enum
+{
+	TORQUE_BY_4 	 = 0,
+	OPEN_DIFF_NO_PID = 1,
+	TORQUE_VECTORING = 2
+} DRIVE_MODEL_MODES_t;
 
 typedef enum
 {
@@ -172,7 +191,8 @@ void run_simulink_model_and_update_drive_outputs();
 void publish_drive_control_snapshot();
 
 extern VEHICLE_STATE_t vehicle_state;
-extern bool slow_mode;
+extern DRIVE_SPEED_MODE_t drive_speed_mode;
+extern DRIVE_MODEL_MODES_t drive_model;
 
 extern FVC_DRIVE_SENSOR_DATA fvc_drive_sensor_data_global;
 extern DRIVE_CONTROL_SNAPSHOT drive_snapshot;

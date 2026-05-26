@@ -151,6 +151,50 @@ bool inverter_fault_active(){
 	return fault_active;
 }
 
-bool get_slow_mode_status(){
-	return slow_mode;
+void determine_drive_speed_mode(){
+	static uint8_t last_button_press = 0;
+	static uint32_t last_button_press_time = 0;
+	static boolean mode_change_pending = 0;
+
+	if(SLOW_MODE_BUTTON.data == 1 && last_button_press == 0){
+		mode_change_pending = TRUE;
+		last_button_press_time = HAL_GetTick();
+	}
+
+	if(SLOW_MODE_BUTTON.data == 0){
+		mode_change_pending = FALSE;
+	}
+
+	if(mode_change_pending &&
+		(SLOW_MODE_BUTTON.data == 1) &&
+		(HAL_GetTick() - last_button_press_time > SLOW_MODE_HOLD_TIME_THRESH)){
+		drive_speed_mode = (drive_speed_mode + 1) % 2;
+		mode_change_pending = FALSE;
+	}
+
+	last_button_press = SLOW_MODE_BUTTON.data;
+}
+
+void determine_drive_model(){
+	static uint8_t last_button_press = 0;
+	static uint32_t last_button_press_time = 0;
+	static boolean mode_change_pending = 0;
+
+	if(DRIVE_MODEL_BUTTON.data == 1 && last_button_press == 0){
+		mode_change_pending = TRUE;
+		last_button_press_time = HAL_GetTick();
+	}
+
+	if(DRIVE_MODEL_BUTTON.data == 0){
+		mode_change_pending = FALSE;
+	}
+
+	if(mode_change_pending &&
+		(DRIVE_MODEL_BUTTON.data == 1) &&
+		(HAL_GetTick() - last_button_press_time > DRIVE_MODEL_HOLD_TIME_THRESH)){
+		drive_model = (drive_model + 1) % 3;
+		mode_change_pending = FALSE;
+	}
+
+	last_button_press = DRIVE_MODEL_BUTTON.data;
 }
