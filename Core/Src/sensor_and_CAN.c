@@ -127,8 +127,9 @@ void update_non_ADC_CAN_params(){
 	update_and_queue_param_u8(&fvcSdcStatus3, HAL_GPIO_ReadPin(SDC1_GPIO_Port, SDC1_Pin));
 	update_and_queue_param_u8(&fvcSdcStatus4, HAL_GPIO_ReadPin(SDC2_GPIO_Port, SDC2_Pin));
 
-	// Drive Speed Mode
-	update_and_queue_param_u8(&fvcDriveSpeedMode_state, get_slow_mode_status());
+	// Drive Speed/Model Modes
+	update_and_queue_param_u8(&fvcDriveSpeedMode_state,   drive_speed_mode);
+	update_and_queue_param_u8(&fvcActiveDriveModel_state, drive_model);
 
 	// Forwarded Motor/Inv Temps
 	update_and_queue_param_float(&fvcControllerTemp_FL_C, controllerTemp_FL_C.data);

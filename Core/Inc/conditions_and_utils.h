@@ -28,4 +28,9 @@ bool get_slow_mode_status();
 
 // Git LEDs
 void init_git_LEDs();
+
+// Drive Speed/Model Modes
+void determine_drive_speed_mode();
+void determine_drive_model();
+
 #endif /* INC_CONDITIONS_AND_UTILS_H_ */

@@ -20,7 +20,8 @@ FVC_DRIVE_SENSOR_DATA fvc_drive_sensor_data_global;
 DRIVE_CONTROL_SNAPSHOT drive_snapshot;
 
 bool all_inverter_enable; // enable for all 4 inverters in this case
-bool slow_mode;
+DRIVE_SPEED_MODE_t drive_speed_mode = FULL_POWER;
+DRIVE_MODEL_MODES_t drive_model     = TORQUE_BY_4;
 
 DRIVE_CONTROL_INPUTS open_diff_inputs = {
 	.slip_tract_limit_percent = TRACTION_LIMIT_percent,
@@ -95,6 +96,8 @@ void debug_task(){
 }
 
 void drive_task(){
+	determine_drive_speed_mode();
+	determine_drive_model();
 	process_inverter();
 }
 
@@ -180,7 +183,12 @@ void update_drive_inputs(){
 	osMutexRelease(fvcDriveSensorsMutexHandle);
 
 	// Current Limits + Enable
-	float max_AC_inv_limit = (slow_mode) ? AC_CURRENT_SLOW_MODE_MAX_Apk : AC_CURRENT_LIMIT_AT_MAX_PACK_VOLTAGE_Apk;
+	float max_AC_inv_limit;
+	if(drive_speed_mode == SLOW)
+		max_AC_inv_limit = AC_CURRENT_SLOW_MODE_MAX_Apk;
+	else
+		max_AC_inv_limit = AC_CURRENT_LIMIT_AT_MAX_PACK_VOLTAGE_Apk;
+
 	if (vehicle_state != VEHICLE_DRIVING){
 		open_diff_inputs.ac_currentMaxLimit_Apk = 0;
 		open_diff_inputs.dc_currentMaxlimit_A   = 0;
@@ -196,6 +204,18 @@ void update_drive_inputs(){
 }
 
 void run_simulink_model_and_update_drive_outputs(){
+	
+	switch (drive_model)
+	{
+		case OPEN_DIFF_NO_PID:
+			break;
+		case TORQUE_VECTORING:
+			break;
+		case TORQUE_BY_4:
+		default:
+			break;
+	}
+
 	drive_control_end_tick_local = HAL_GetTick();
 	drive_timestep_number_local++;
 }
