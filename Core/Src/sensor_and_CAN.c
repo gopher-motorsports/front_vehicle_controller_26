@@ -53,9 +53,8 @@ void update_non_ADC_CAN_params(){
 	update_and_queue_param_u8(&fvcSdcStatus3, HAL_GPIO_ReadPin(SDC1_GPIO_Port, SDC1_Pin));
 	update_and_queue_param_u8(&fvcSdcStatus4, HAL_GPIO_ReadPin(SDC2_GPIO_Port, SDC2_Pin));
 
-	// Drive Speed/Model Modes
+	// Drive Speed
 	update_and_queue_param_u8(&fvcDriveSpeedMode_state,   drive_speed_mode);
-	update_and_queue_param_u8(&fvcActiveDriveModel_state, drive_model);
 
 	// Forwarded Motor/Inv Temps
 	update_and_queue_param_float(&fvcControllerTemp_FL_C, controllerTemp_FL_C.data);
@@ -95,7 +94,7 @@ void update_drive_control_can_params(){
 	float inv_ac_max_curr;
 	float inv_dc_max_curr;
 	if (drive_snap_loc.drive_timestep_number != last_drive_snapshot_time_step_num){
-		switch (drive_model)
+		switch (drive_snap_loc.drive_active_model)
 		{
 			case OPEN_DIFF_NO_PID:
 				// Open Diff Specific
@@ -117,8 +116,7 @@ void update_drive_control_can_params(){
 				update_torque_can_params(drive_snap_loc.open_diff_control_outputs.tauFL_Nm, 
 										 drive_snap_loc.open_diff_control_outputs.tauFR_Nm,
 										 drive_snap_loc.open_diff_control_outputs.tauRL_Nm, 
-										 drive_snap_loc.open_diff_control_outputs.tauRR_Nm,
-										 drive_snap_loc.open_diff_control_inputs.tauMaxLimit_Nm);
+										 drive_snap_loc.open_diff_control_outputs.tauRR_Nm);
 				
 				// Inverter Params
 				inv_dc_max_curr = drive_snap_loc.open_diff_control_inputs.dc_currentMaxlimit_A   / 4;
@@ -144,8 +142,7 @@ void update_drive_control_can_params(){
 				update_torque_can_params(drive_snap_loc.tau_by_4_control_outputs.tauFL_Nm,
 									     drive_snap_loc.tau_by_4_control_outputs.tauFR_Nm,
 									     drive_snap_loc.tau_by_4_control_outputs.tauRL_Nm,
-									     drive_snap_loc.tau_by_4_control_outputs.tauRR_Nm,
-									     drive_snap_loc.tau_by_4_control_inputs.tauMaxLimit_Nm);
+									     drive_snap_loc.tau_by_4_control_outputs.tauRR_Nm);
 				
 				inv_dc_max_curr = drive_snap_loc.tau_by_4_control_inputs.dc_currentMaxlimit_A / 4;
 				inv_ac_max_curr = drive_snap_loc.tau_by_4_control_inputs.ac_currentMaxLimit_Apk / 4;
@@ -159,23 +156,19 @@ void update_drive_control_can_params(){
 				break;
 		}	
 		
-
-		update_and_queue_param_float(&fvcCurrentTotalCMD_Apk, drive_snap_loc.open_diff_control_outputs.currentCMDTotal_Apk);
 		update_and_queue_param_u32(&fvcDriveControlTickStart_ms, drive_snap_loc.drive_control_start_tick);
 		update_and_queue_param_u32(&fvcDriveControlTickEnd_ms, 	 drive_snap_loc.drive_control_end_tick);
 		update_and_queue_param_u8(&fvcVehicleState_state, 		 drive_snap_loc.drive_vehicle_state);
+		update_and_queue_param_u8(&fvcActiveDriveModel_state, 	 drive_snap_loc.drive_active_model);
 	}
 	last_drive_snapshot_time_step_num = drive_snap_loc.drive_timestep_number;
 }
 
-void update_torque_can_params(float tau_cmd_FL, float tau_cmd_FR, float tau_cmd_RL, float tau_cmd_RR, float tau_total_limit){
+void update_torque_can_params(float tau_cmd_FL, float tau_cmd_FR, float tau_cmd_RL, float tau_cmd_RR){
 	update_and_queue_param_float(&fvcTau_FL_Nm, 	 tau_cmd_FL);
 	update_and_queue_param_float(&fvcTau_FR_Nm, 	 tau_cmd_FR);
 	update_and_queue_param_float(&fvcTau_RL_Nm, 	 tau_cmd_RL);
 	update_and_queue_param_float(&fvcTau_RR_Nm, 	 tau_cmd_RR);
-
-	// limit of sum(tau_FL, tau_FR, ...)
-	update_and_queue_param_float(&fvcTauTotalCMD_Nm, tau_total_limit);
 }
 
 void update_inverter_can_params(float ac_cmd_FL, float ac_cmd_FR, float ac_cmd_RL, float ac_cmd_RR,

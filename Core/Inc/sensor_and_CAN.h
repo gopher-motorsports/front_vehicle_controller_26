@@ -20,8 +20,8 @@ void update_drive_control_can_params();
 void update_torque_can_params(float tau_cmd_FL, 
 							  float tau_cmd_FR, 
 							  float tau_cmd_RL, 
-							  float tau_cmd_RR, 
-							  float tau_total_limit);
+							  float tau_cmd_RR);
+							
 void update_inverter_can_params(float ac_cmd_FL, float ac_cmd_FR, float ac_cmd_RL, float ac_cmd_RR,
 								float ac_lim_FL, float ac_lim_FR, float ac_lim_RL, float ac_lim_RR,
 								float dc_lim_FL, float dc_lim_FR, float dc_lim_RL, float dc_lim_RR,

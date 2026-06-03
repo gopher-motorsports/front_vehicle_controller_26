@@ -196,6 +196,7 @@ typedef struct{
 	bool 				  drive_enable_state;
 	VEHICLE_STATE_t		  drive_vehicle_state;
 	uint32_t			  drive_timestep_number;
+	DRIVE_MODEL_MODES_t	  drive_active_model;
 } DRIVE_CONTROL_SNAPSHOT;
 
 // Init

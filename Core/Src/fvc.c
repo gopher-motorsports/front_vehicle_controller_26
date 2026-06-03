@@ -292,7 +292,7 @@ void publish_drive_control_snapshot(){
 	drive_snapshot_local.drive_enable_state	   	  = all_inverter_enable;
 	drive_snapshot_local.drive_vehicle_state	  = vehicle_state;
 	drive_snapshot_local.drive_timestep_number	  = drive_timestep_number_local;
-	
+	drive_snapshot_local.drive_active_model		  = drive_model;
 	osMutexWait(driveSnapshotMutexHandle, osWaitForever);
 	drive_snapshot = drive_snapshot_local;
 	osMutexRelease(driveSnapshotMutexHandle);
