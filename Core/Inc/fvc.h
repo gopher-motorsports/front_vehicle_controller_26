@@ -24,15 +24,22 @@
 #define BSPD_POWER_LIMIT_W		                  	4000.0f   // 5 kW limit before a car shutdown is required, 4 kW with buffer
 #define RULES_POWER_LIMIT_W						    78000.0f  // 78 kw limit for an 80kw limit with 2 kw margin 
 #define DC_CURRENT_LIMIT_AT_MAX_PACK_VOLTAGE_A    	125.15f // DC Current Limit at Max Pack Voltage
-#define AC_CURRENT_LIMIT_AT_MAX_PACK_VOLTAGE_Apk  	390.0f   // TODO: PLACEHOLDER Replace with better value
-#define AC_CURRENT_SLOW_MODE_MAX_Apk  				AC_CURRENT_LIMIT_AT_MAX_PACK_VOLTAGE_Apk / 3    // TODO: PLACEHOLDER Replace with better value
+
+#define INVERTER_MAX_CURRENT_Apk  					120.0f	 // Max Apk command for each inverter
+#define TOTAL_INVERTER_MAX_CURRENT_Apk				INVERTER_MAX_CURRENT_Apk * 4
 #define MAX_PACK_VOLTAGE                          	599.2f  
 #define NOMINAL_PACK_VOLTAGE                      	420.0f   // 3.0V per cell * 140 cells = 420V
-//Properties
+
+// Motor Properties
+#define Kt						0.257f
 #define TOTAL_INVERTERS         4       // 2 Dual Package F-Sic Inverters = 4 total inverters
 #define MOTOR_POLE_PAIRS   		4 	    // Amount of Pole Pairs of the MTS Motor, 4 pole pairs = 8 poles
 #define DRIVE_TRAIN_GEAR_RATIO	12.8f	// Drive Train Gear Ratio
 #define WHEEL_RADIUS			0.2032f	// Wheel Raidus = 8 inches --> 0.2032 in
+
+// Motor Limits
+#define MOTOR_MAX_TORQUE_Nm	  	30.84 // 120 Apk * .257 = 30.84Nm
+#define TOTAL_TORQUE_LIMIT_Nm	MOTOR_MAX_TORQUE_Nm * 4
 // ============================= CAR PARAMS =============================
 //Thresholds for "fvc.software_faults.c" 
 #define INPUT_TRIP_DELAY_ms   85     // The amount of time it takes an input fault to take effect, margin from 100
@@ -79,7 +86,6 @@
 #define DRIVE_MODEL_HOLD_TIME_THRESH 	1000
 // ============================= Drive Control PARAMS =============================
 #define TRACTION_LIMIT_percent    15.0f	// Past this wheel slip we have broken traction
-#define MOTOR_MAX_TORQUE_Nm	  36
 
 // ============================= FreeRTOS PARAMS =============================
 #define IDLE_TASK_hz	  		  		5
@@ -131,13 +137,33 @@ typedef struct {
 } FVC_DRIVE_SENSOR_DATA;
 
 typedef struct {
+	float throttle_percent;
+	float tauMaxLimit_Nm;
+	float ac_currentMaxLimit_Apk;
+	float dc_currentMaxlimit_A;
+} TORQUE_BY_4_INPUTS;
+
+typedef struct {
+	float tauFL_Nm;
+	float tauFR_Nm;
+	float tauRL_Nm;
+	float tauRR_Nm;
+	float tauTotalCMD_Nm;
+	float currentCMDFL_Apk;
+	float currentCMDFR_Apk;
+	float currentCMDRL_Apk;
+	float currentCMDRR_Apk;
+	float currentCMDTotal_Apk;
+} TORQUE_BY_4_OUTPUTS;
+
+typedef struct {
 	float slip_tract_limit_percent;
 	float car_speed;
 	FVC_DRIVE_SENSOR_DATA fvc_drive_sensor_data;
 	float tauMaxLimit_Nm;
 	float ac_currentMaxLimit_Apk;
 	float dc_currentMaxlimit_A;
-} DRIVE_CONTROL_INPUTS;
+} OPEN_DIFF_INPUTS;
 
 typedef struct {
 	float slipFL_percent;
@@ -158,16 +184,19 @@ typedef struct {
 	float currentCMDRL_Apk;
 	float currentCMDRR_Apk;
 	float currentCMDTotal_Apk;
-} DRIVE_CONTROL_OUTPUTS;
+} OPEN_DIFF_OUTPUTS;
 
 typedef struct{
-    DRIVE_CONTROL_INPUTS  drive_control_inputs;
-    DRIVE_CONTROL_OUTPUTS drive_control_outputs;
+    OPEN_DIFF_INPUTS      open_diff_control_inputs;
+    OPEN_DIFF_OUTPUTS     open_diff_control_outputs;
+	TORQUE_BY_4_INPUTS	  tau_by_4_control_inputs;
+	TORQUE_BY_4_OUTPUTS	  tau_by_4_control_outputs;
     uint32_t 			  drive_control_start_tick;
 	uint32_t 			  drive_control_end_tick;
 	bool 				  drive_enable_state;
 	VEHICLE_STATE_t		  drive_vehicle_state;
 	uint32_t			  drive_timestep_number;
+	DRIVE_MODEL_MODES_t	  drive_active_model;
 } DRIVE_CONTROL_SNAPSHOT;
 
 // Init
