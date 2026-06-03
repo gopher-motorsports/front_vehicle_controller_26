@@ -32,81 +32,7 @@ void update_non_ADC_CAN_params(){
 	update_and_queue_param_float(&fvcPedalPosition2_percent, calc_pedal_percent(fvcPedalPosition2_mm.data, APPS_2_MIN_CURRENT_POS_mm, APPS_2_TOTAL_TRAVEL_mm));
 
 	// Snapshot of Recent Controls Timestep
-	static DRIVE_CONTROL_SNAPSHOT last_drive_snapshot_local;
-	DRIVE_CONTROL_SNAPSHOT drive_snapshot_local;
-	osMutexWait(driveSnapshotMutexHandle, osWaitForever);
-	drive_snapshot_local = drive_snapshot;
-	osMutexRelease(driveSnapshotMutexHandle);
-
-	if (drive_snapshot_local.drive_timestep_number != last_drive_snapshot_local.drive_timestep_number){
-		update_and_queue_param_float(&fvcSlip_FL_percent, drive_snapshot_local.drive_control_outputs.slipFL_percent);
-		update_and_queue_param_float(&fvcSlip_FR_percent, drive_snapshot_local.drive_control_outputs.slipFR_percent);
-		update_and_queue_param_float(&fvcSlip_RL_percent, drive_snapshot_local.drive_control_outputs.slipRL_percent);
-		update_and_queue_param_float(&fvcSlip_RR_percent, drive_snapshot_local.drive_control_outputs.slipRR_percent);
-
-		update_and_queue_param_u8(&fvcSlipStatus_FL_state, drive_snapshot_local.drive_control_outputs.is_FL_slipping);
-		update_and_queue_param_u8(&fvcSlipStatus_FR_state, drive_snapshot_local.drive_control_outputs.is_FR_slipping);
-		update_and_queue_param_u8(&fvcSlipStatus_RL_state, drive_snapshot_local.drive_control_outputs.is_RL_slipping);
-		update_and_queue_param_u8(&fvcSlipStatus_RR_state, drive_snapshot_local.drive_control_outputs.is_RR_slipping);
-
-		update_and_queue_param_float(&fvcTauTotalCMD_Nm, drive_snapshot_local.drive_control_outputs.tauTotalCMD_Nm);
-		update_and_queue_param_float(&fvcTau_FL_Nm, 	 drive_snapshot_local.drive_control_outputs.tauFL_Nm);
-		update_and_queue_param_float(&fvcTau_FR_Nm, 	 drive_snapshot_local.drive_control_outputs.tauFR_Nm);
-		update_and_queue_param_float(&fvcTau_RL_Nm, 	 drive_snapshot_local.drive_control_outputs.tauRL_Nm);
-		update_and_queue_param_float(&fvcTau_RR_Nm, 	 drive_snapshot_local.drive_control_outputs.tauRR_Nm);
-
-		update_and_queue_param_float(&fvcCurrentTotalCMD_Apk, drive_snapshot_local.drive_control_outputs.currentCMDTotal_Apk);
-
-		update_and_queue_param_u32(&fvcDriveControlTickStart_ms, drive_snapshot_local.drive_control_start_tick);
-		update_and_queue_param_u32(&fvcDriveControlTickEnd_ms, 	 drive_snapshot_local.drive_control_end_tick);
-		update_and_queue_param_u8(&fvcVehicleState_state, 		 drive_snapshot_local.drive_vehicle_state);
-		
-		// Update Inverter Params
-		invCurrentCmd_FL_Apk.data = drive_snapshot_local.drive_control_outputs.currentCMDFL_Apk;
-		invCurrentCmd_FR_Apk.data = drive_snapshot_local.drive_control_outputs.currentCMDFR_Apk;
-		invCurrentCmd_RL_Apk.data = drive_snapshot_local.drive_control_outputs.currentCMDRL_Apk;
-		invCurrentCmd_RR_Apk.data = drive_snapshot_local.drive_control_outputs.currentCMDRR_Apk;
-
-		//TODO gotta change Current limits to be dynamic with 4 wheel/2 wheel drive
-		float per_inverter_ac_currentMaxLimit = (drive_snapshot_local.drive_control_inputs.ac_currentMaxLimit_Apk) / TOTAL_INVERTERS;
-		invMaxCurrentLimitCmd_FL_Apk.data = per_inverter_ac_currentMaxLimit;
-		invMaxCurrentLimitCmd_FR_Apk.data = per_inverter_ac_currentMaxLimit;
-		invMaxCurrentLimitCmd_RL_Apk.data = per_inverter_ac_currentMaxLimit;
-		invMaxCurrentLimitCmd_RR_Apk.data = per_inverter_ac_currentMaxLimit;
-
-		float per_inverter_dc_currentMaxLimit = (drive_snapshot_local.drive_control_inputs.dc_currentMaxlimit_A) / TOTAL_INVERTERS;
-		invMaxDCCurrentLimitCmd_FL_A.data = per_inverter_dc_currentMaxLimit;
-		invMaxDCCurrentLimitCmd_FR_A.data = per_inverter_dc_currentMaxLimit;
-		invMaxDCCurrentLimitCmd_RL_A.data = per_inverter_dc_currentMaxLimit;
-		invMaxDCCurrentLimitCmd_RR_A.data = per_inverter_dc_currentMaxLimit;
-
-		bool per_inverter_enable = drive_snapshot_local.drive_enable_state;
-		invDriveEnable_FL_state.data = per_inverter_enable;
-		invDriveEnable_FR_state.data = per_inverter_enable;
-		invDriveEnable_RL_state.data = per_inverter_enable;
-		invDriveEnable_RR_state.data = per_inverter_enable;
-		
-		send_group(invCurrentCmd_FL_Apk.info.GROUP_ID);
-		send_group(invCurrentCmd_FR_Apk.info.GROUP_ID);
-		send_group(invCurrentCmd_RL_Apk.info.GROUP_ID);
-		send_group(invCurrentCmd_RR_Apk.info.GROUP_ID);
-
-		send_group(invMaxCurrentLimitCmd_FL_Apk.info.GROUP_ID);
-		send_group(invMaxCurrentLimitCmd_FR_Apk.info.GROUP_ID);
-		send_group(invMaxCurrentLimitCmd_RL_Apk.info.GROUP_ID);
-		send_group(invMaxCurrentLimitCmd_RR_Apk.info.GROUP_ID);
-
-		send_group(invMaxDCCurrentLimitCmd_FL_A.info.GROUP_ID);
-		send_group(invMaxDCCurrentLimitCmd_FR_A.info.GROUP_ID);
-		send_group(invMaxDCCurrentLimitCmd_RL_A.info.GROUP_ID);
-		send_group(invMaxDCCurrentLimitCmd_RR_A.info.GROUP_ID);
-
-		send_group(invDriveEnable_FL_state.info.GROUP_ID);
-		send_group(invDriveEnable_FR_state.info.GROUP_ID);
-		send_group(invDriveEnable_RL_state.info.GROUP_ID);
-		send_group(invDriveEnable_RR_state.info.GROUP_ID);
-	}
-	last_drive_snapshot_local = drive_snapshot_local;
+	update_drive_control_params();
 
 	// Low Freqeuncy(5Hz):
 	// Brake Temps(ADC), Ride Height(ADC), Rules Required Flts, Display Flt, Hbeat Flt, SDC, Drive Speed Mode, Motor/Inv Temps, Efuse Flts, Efuse Current (ADC)
@@ -156,6 +82,146 @@ void update_non_ADC_CAN_params(){
 	update_and_queue_param_u32(&fvcGitHash_decimal, CURRENT_GIT_HASH_DECIMAL);
 	update_and_queue_param_u8(&fvcGitHasUncommitedChanges, CURRENT_GIT_HAS_CHANGES);
 	update_and_queue_param_u16(&fvcGitHasUncommitedChanges, CURRENT_GIT_CHANGES_COUNT);
+
+}
+//drive_snap_loc.drive_enable_state;	
+void update_drive_control_can_params(){
+	static uin32_t last_drive_snapshot_time_step_num;
+	DRIVE_CONTROL_SNAPSHOT drive_snap_loc;
+	osMutexWait(driveSnapshotMutexHandle, osWaitForever);
+	drive_snap_loc = drive_snapshot;
+	osMutexRelease(driveSnapshotMutexHandle);
+
+	float inv_ac_max_curr;
+	float inv_dc_max_curr;
+	if (drive_snap_loc.drive_timestep_number != last_drive_snapshot_time_step_num){
+		switch (drive_model)
+		{
+			case OPEN_DIFF_NO_PID:
+				// Open Diff Specific
+				update_and_queue_param_float(&fvcSlip_FL_percent, drive_snap_loc.open_diff_control_outputs.slipFL_percent);
+				update_and_queue_param_float(&fvcSlip_FR_percent, drive_snap_loc.open_diff_control_outputs.slipFR_percent);
+				update_and_queue_param_float(&fvcSlip_RL_percent, drive_snap_loc.open_diff_control_outputs.slipRL_percent);
+				update_and_queue_param_float(&fvcSlip_RR_percent, drive_snap_loc.open_diff_control_outputs.slipRR_percent);
+
+				update_and_queue_param_u8(&fvcSlipStatus_FL_state, drive_snap_loc.open_diff_control_outputs.is_FL_slipping);
+				update_and_queue_param_u8(&fvcSlipStatus_FR_state, drive_snap_loc.open_diff_control_outputs.is_FR_slipping);
+				update_and_queue_param_u8(&fvcSlipStatus_RL_state, drive_snap_loc.open_diff_control_outputs.is_RL_slipping);
+				update_and_queue_param_u8(&fvcSlipStatus_RR_state, drive_snap_loc.open_diff_control_outputs.is_RR_slipping);
+
+				// Total Commands:
+				update_and_queue_param_float(&fvcTauTotalCMD_Nm,      drive_snap_loc.open_diff_control_outputs.tauTotalCMD_Nm);
+				update_and_queue_param_float(&fvcCurrentTotalCMD_Apk, drive_snap_loc.open_diff_control_outputs.currentCMDTotal_Apk);
+
+				// Wheel Torques
+				update_torque_can_params(drive_snap_loc.open_diff_control_outputs.tauFL_Nm, drive_snap_loc.open_diff_control_outputs.tauFR_Nm,
+										 drive_snap_loc.open_diff_control_outputs.tauRL_Nm, drive_snap_loc.open_diff_control_outputs.tauRR_Nm,
+										 drive_snap_loc.open_diff_control_inputs.tauMaxLimit_Nm);
+				
+				// Inverter Params
+				inv_dc_max_curr = drive_snap_loc.open_diff_control_inputs.dc_currentMaxlimit_A   / 4;
+				inv_ac_max_curr = drive_snap_loc.open_diff_control_inputs.ac_currentMaxLimit_Apk / 4;
+				update_inverter_can_params(drive_snap_loc.open_diff_control_outputs.currentCMDFL_Apk, drive_snap_loc.open_diff_control_outputs.currentCMDFR_Apk,
+										   drive_snap_loc.open_diff_control_outputs.currentCMDRL_Apk, drive_snap_loc.open_diff_control_outputs.currentCMDRR_Apk,
+										   inv_ac_max_curr, inv_ac_max_curr, inv_ac_max_curr, inv_ac_max_curr,
+										   inv_dc_max_curr, inv_dc_max_curr, inv_dc_max_curr, inv_dc_max_curr,
+										   drive_snap_loc.drive_enable_state);
+				break;
+
+			case TORQUE_VECTORING:
+
+				break;
+
+			case TORQUE_BY_4:
+			default:
+				// Total Commands:
+				update_and_queue_param_float(&fvcTauTotalCMD_Nm,      drive_snap_loc.tau_by_4_control_outputs.tauTotalCMD_Nm);
+				update_and_queue_param_float(&fvcCurrentTotalCMD_Apk, drive_snap_loc.tau_by_4_control_outputs.currentCMDTotal_Apk);
+				
+				update_torque_can_params(drive_snap_loc.tau_by_4_control_outputs.tauFL_Nm,
+									     drive_snap_loc.tau_by_4_control_outputs.tauFR_Nm,
+									     drive_snap_loc.tau_by_4_control_outputs.tauRL_Nm,
+									     drive_snap_loc.tau_by_4_control_outputs.tauRR_Nm,
+									     drive_snap_loc.tau_by_4_control_inputs.tauMaxLimit_Nm);
+				
+				inv_dc_max_curr = drive_snap_loc.tau_by_4_control_inputs.dc_currentMaxlimit_A / 4;
+				inv_ac_max_curr = drive_snap_loc.tau_by_4_control_inputs.ac_currentMaxLimit_Apk / 4;
+				update_inverter_can_params(drive_snap_loc.tau_by_4_control_outputs.currentCMDFL_Apk,
+										   drive_snap_loc.tau_by_4_control_outputs.currentCMDFR_Apk,
+										   drive_snap_loc.tau_by_4_control_outputs.currentCMDRL_Apk,
+										   drive_snap_loc.tau_by_4_control_outputs.currentCMDRR_Apk,
+										   inv_ac_max_curr, inv_ac_max_curr, inv_ac_max_curr, inv_ac_max_curr,
+										   inv_dc_max_curr, inv_dc_max_curr, inv_dc_max_curr, inv_dc_max_curr,
+										   drive_snap_loc.drive_enable_state);
+				break;
+		}	
+		
+
+		update_and_queue_param_float(&fvcCurrentTotalCMD_Apk, drive_snap_loc.open_diff_control_outputs.currentCMDTotal_Apk);
+		update_and_queue_param_u32(&fvcDriveControlTickStart_ms, drive_snap_loc.drive_control_start_tick);
+		update_and_queue_param_u32(&fvcDriveControlTickEnd_ms, 	 drive_snap_loc.drive_control_end_tick);
+		update_and_queue_param_u8(&fvcVehicleState_state, 		 drive_snap_loc.drive_vehicle_state);
+	}
+	last_drive_snapshot_time_step_num = drive_snap_loc.drive_timestep_number;
+}
+
+void update_torque_can_params(float tau_cmd_FL, float tau_cmd_FR, float tau_cmd_RL, float tau_cmd_RR, float total_tau_cmd){
+	update_and_queue_param_float(&fvcTauTotalCMD_Nm, total_tau_cmd);
+	update_and_queue_param_float(&fvcTau_FL_Nm, 	 tau_cmd_FL);
+	update_and_queue_param_float(&fvcTau_FR_Nm, 	 tau_cmd_FR);
+	update_and_queue_param_float(&fvcTau_RL_Nm, 	 tau_cmd_RL);
+	update_and_queue_param_float(&fvcTau_RR_Nm, 	 tau_cmd_RR);
+}
+
+void update_inverter_can_params(float ac_cmd_FL, float ac_cmd_FR, float ac_cmd_RL, float ac_cmd_RR,
+								float ac_lim_FL, float ac_lim_FR, float ac_lim_RL, float ac_lim_RR,
+								float dc_lim_FL, float dc_lim_FR, float dc_lim_RL, float dc_lim_RR,
+								bool drive_enable){
+	
+	// AC Current Command
+	invCurrentCmd_FL_Apk.data = ac_cmd_FL;
+	invCurrentCmd_FR_Apk.data = ac_cmd_FR;
+	invCurrentCmd_RL_Apk.data = ac_cmd_RL;
+	invCurrentCmd_RR_Apk.data = ac_cmd_RR;
+
+	// AC Current Max Limit
+	invMaxCurrentLimitCmd_FL_Apk.data = ac_lim_FL;
+	invMaxCurrentLimitCmd_FR_Apk.data = ac_lim_FR;
+	invMaxCurrentLimitCmd_RL_Apk.data = ac_lim_RL;
+	invMaxCurrentLimitCmd_RR_Apk.data = ac_lim_RR;
+	
+	// DC Current Max Limit
+	invMaxDCCurrentLimitCmd_FL_A.data = dc_lim_FL;
+	invMaxDCCurrentLimitCmd_FR_A.data = dc_lim_FR;
+	invMaxDCCurrentLimitCmd_RL_A.data = dc_lim_RL;
+	invMaxDCCurrentLimitCmd_RR_A.data = dc_lim_RR;
+	
+	// Drive Enable
+	invDriveEnable_FL_state.data = drive_enable;
+	invDriveEnable_FR_state.data = drive_enable;
+	invDriveEnable_RL_state.data = drive_enable;
+	invDriveEnable_RR_state.data = drive_enable;
+
+	// Send all Params
+	send_group(invCurrentCmd_FL_Apk.info.GROUP_ID);
+	send_group(invCurrentCmd_FR_Apk.info.GROUP_ID);
+	send_group(invCurrentCmd_RL_Apk.info.GROUP_ID);
+	send_group(invCurrentCmd_RR_Apk.info.GROUP_ID);
+
+	send_group(invMaxCurrentLimitCmd_FL_Apk.info.GROUP_ID);
+	send_group(invMaxCurrentLimitCmd_FR_Apk.info.GROUP_ID);
+	send_group(invMaxCurrentLimitCmd_RL_Apk.info.GROUP_ID);
+	send_group(invMaxCurrentLimitCmd_RR_Apk.info.GROUP_ID);
+
+	send_group(invMaxDCCurrentLimitCmd_FL_A.info.GROUP_ID);
+	send_group(invMaxDCCurrentLimitCmd_FR_A.info.GROUP_ID);
+	send_group(invMaxDCCurrentLimitCmd_RL_A.info.GROUP_ID);
+	send_group(invMaxDCCurrentLimitCmd_RR_A.info.GROUP_ID);
+
+	send_group(invDriveEnable_FL_state.info.GROUP_ID);
+	send_group(invDriveEnable_FR_state.info.GROUP_ID);
+	send_group(invDriveEnable_RL_state.info.GROUP_ID);
+	send_group(invDriveEnable_RR_state.info.GROUP_ID);
 
 }
 

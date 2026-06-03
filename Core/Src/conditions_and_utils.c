@@ -107,6 +107,30 @@ float calculate_dc_current_limit(){
 	return dc_current_limit_A;
 }
 
+// AC Current Limit Calculation
+float calculate_ac_current_limit(){
+	float max_AC_inv_limit;
+	if(drive_speed_mode == SLOW)
+		max_AC_inv_limit = TOTAL_INVERTER_MAX_CURRENT_Apk / 3;
+	else
+		max_AC_inv_limit = TOTAL_INVERTER_MAX_CURRENT_Apk;
+	
+	return max_AC_inv_limit;
+}
+
+// Determine Drive Power Limits
+void determine_drive_power_limits(float *ac_limit_Apk, float *dc_limit_A, bool drive_enable){
+	if (vehicle_state != VEHICLE_DRIVING){
+		*ac_limit_Apk = 0;
+		*dc_limit_A   = 0;
+		*drive_enable  = FALSE; 
+	}
+	else{
+		*ac_limit_Apk = get_rules_fault_state() ? 0 : calculate_ac_current_limit();
+		*dc_limit_A   = calculate_dc_current_limit();
+		*drive_enable  = TRUE; 
+	}
+}
 
 // ======================================== Inverter Condition Functions ======================================================
 bool predrive_conditions_met(){
