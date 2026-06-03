@@ -262,28 +262,28 @@ void publish_drive_control_snapshot(){
 	switch (drive_model)
 	{
 		case OPEN_DIFF_NO_PID:
-			drive_control_snapshot.tau_by_4_control_inputs  = (TORQUE_BY_4_INPUTS){0};
-			drive_control_snapshot.tau_by_4_control_outputs = (TORQUE_BY_4_OUTPUTS){0};
+			drive_snapshot_local.tau_by_4_control_inputs  = (TORQUE_BY_4_INPUTS){0};
+			drive_snapshot_local.tau_by_4_control_outputs = (TORQUE_BY_4_OUTPUTS){0};
 
-			drive_control_snapshot.open_diff_control_inputs  = open_diff_inputs;
-			drive_control_snapshot.open_diff_control_outputs = open_diff_outputs;
+			drive_snapshot_local.open_diff_control_inputs  = open_diff_inputs;
+			drive_snapshot_local.open_diff_control_outputs = open_diff_outputs;
 			break;
 
 		case TORQUE_VECTORING:
-			drive_control_snapshot.tau_by_4_control_inputs  = (TORQUE_BY_4_INPUTS){0};
-			drive_control_snapshot.tau_by_4_control_outputs = (TORQUE_BY_4_OUTPUTS){0};
-			drive_control_snapshot.open_diff_control_inputs  = (OPEN_DIFF_INPUTS){0};
-			drive_control_snapshot.open_diff_control_outputs = (OPEN_DIFF_OUTPUTS){0};
+			drive_snapshot_local.tau_by_4_control_inputs  = (TORQUE_BY_4_INPUTS){0};
+			drive_snapshot_local.tau_by_4_control_outputs = (TORQUE_BY_4_OUTPUTS){0};
+			drive_snapshot_local.open_diff_control_inputs  = (OPEN_DIFF_INPUTS){0};
+			drive_snapshot_local.open_diff_control_outputs = (OPEN_DIFF_OUTPUTS){0};
 
 			break;
 
 		case TORQUE_BY_4:
 		default:
-			drive_control_snapshot.open_diff_control_inputs  = (OPEN_DIFF_INPUTS){0};
-			drive_control_snapshot.open_diff_control_outputs = (OPEN_DIFF_OUTPUTS){0};
+			drive_snapshot_local.open_diff_control_inputs  = (OPEN_DIFF_INPUTS){0};
+			drive_snapshot_local.open_diff_control_outputs = (OPEN_DIFF_OUTPUTS){0};
 
-			drive_control_snapshot.tau_by_4_control_inputs  = tau_by_4_inputs;
-			drive_control_snapshot.tau_by_4_control_outputs = tau_by_4_outputs;
+			drive_snapshot_local.tau_by_4_control_inputs  = tau_by_4_inputs;
+			drive_snapshot_local.tau_by_4_control_outputs = tau_by_4_outputs;
 			break;
 	}	
 

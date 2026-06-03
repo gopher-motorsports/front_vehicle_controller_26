@@ -19,6 +19,7 @@ bool get_both_pedals_fault_state();
 
 // Inverter Limit Functions
 float calculate_dc_current_limit();
+void determine_drive_power_limits(float *ac_limit_Apk, float *dc_limit_A, bool *drive_enable);
 
 // Inverter Condition Functions
 bool predrive_conditions_met();

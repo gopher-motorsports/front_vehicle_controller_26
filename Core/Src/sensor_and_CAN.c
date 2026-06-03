@@ -32,7 +32,7 @@ void update_non_ADC_CAN_params(){
 	update_and_queue_param_float(&fvcPedalPosition2_percent, calc_pedal_percent(fvcPedalPosition2_mm.data, APPS_2_MIN_CURRENT_POS_mm, APPS_2_TOTAL_TRAVEL_mm));
 
 	// Snapshot of Recent Controls Timestep
-	update_drive_control_params();
+	update_drive_control_can_params();
 
 	// Low Freqeuncy(5Hz):
 	// Brake Temps(ADC), Ride Height(ADC), Rules Required Flts, Display Flt, Hbeat Flt, SDC, Drive Speed Mode, Motor/Inv Temps, Efuse Flts, Efuse Current (ADC)
@@ -81,12 +81,12 @@ void update_non_ADC_CAN_params(){
 	update_and_queue_param_u8(&fvcGitBranchName, CURRENT_BRANCH);
 	update_and_queue_param_u32(&fvcGitHash_decimal, CURRENT_GIT_HASH_DECIMAL);
 	update_and_queue_param_u8(&fvcGitHasUncommitedChanges, CURRENT_GIT_HAS_CHANGES);
-	update_and_queue_param_u16(&fvcGitHasUncommitedChanges, CURRENT_GIT_CHANGES_COUNT);
+	update_and_queue_param_u16(&fvcGitTotalUncommitedChanges, CURRENT_GIT_CHANGES_COUNT);
 
 }
 //drive_snap_loc.drive_enable_state;	
 void update_drive_control_can_params(){
-	static uin32_t last_drive_snapshot_time_step_num;
+	static uint32_t last_drive_snapshot_time_step_num;
 	DRIVE_CONTROL_SNAPSHOT drive_snap_loc;
 	osMutexWait(driveSnapshotMutexHandle, osWaitForever);
 	drive_snap_loc = drive_snapshot;
@@ -114,8 +114,10 @@ void update_drive_control_can_params(){
 				update_and_queue_param_float(&fvcCurrentTotalCMD_Apk, drive_snap_loc.open_diff_control_outputs.currentCMDTotal_Apk);
 
 				// Wheel Torques
-				update_torque_can_params(drive_snap_loc.open_diff_control_outputs.tauFL_Nm, drive_snap_loc.open_diff_control_outputs.tauFR_Nm,
-										 drive_snap_loc.open_diff_control_outputs.tauRL_Nm, drive_snap_loc.open_diff_control_outputs.tauRR_Nm,
+				update_torque_can_params(drive_snap_loc.open_diff_control_outputs.tauFL_Nm, 
+										 drive_snap_loc.open_diff_control_outputs.tauFR_Nm,
+										 drive_snap_loc.open_diff_control_outputs.tauRL_Nm, 
+										 drive_snap_loc.open_diff_control_outputs.tauRR_Nm,
 										 drive_snap_loc.open_diff_control_inputs.tauMaxLimit_Nm);
 				
 				// Inverter Params
@@ -138,6 +140,7 @@ void update_drive_control_can_params(){
 				update_and_queue_param_float(&fvcTauTotalCMD_Nm,      drive_snap_loc.tau_by_4_control_outputs.tauTotalCMD_Nm);
 				update_and_queue_param_float(&fvcCurrentTotalCMD_Apk, drive_snap_loc.tau_by_4_control_outputs.currentCMDTotal_Apk);
 				
+				// Wheel Torques + Total Torque Limit
 				update_torque_can_params(drive_snap_loc.tau_by_4_control_outputs.tauFL_Nm,
 									     drive_snap_loc.tau_by_4_control_outputs.tauFR_Nm,
 									     drive_snap_loc.tau_by_4_control_outputs.tauRL_Nm,
@@ -165,12 +168,14 @@ void update_drive_control_can_params(){
 	last_drive_snapshot_time_step_num = drive_snap_loc.drive_timestep_number;
 }
 
-void update_torque_can_params(float tau_cmd_FL, float tau_cmd_FR, float tau_cmd_RL, float tau_cmd_RR, float total_tau_cmd){
-	update_and_queue_param_float(&fvcTauTotalCMD_Nm, total_tau_cmd);
+void update_torque_can_params(float tau_cmd_FL, float tau_cmd_FR, float tau_cmd_RL, float tau_cmd_RR, float tau_total_limit){
 	update_and_queue_param_float(&fvcTau_FL_Nm, 	 tau_cmd_FL);
 	update_and_queue_param_float(&fvcTau_FR_Nm, 	 tau_cmd_FR);
 	update_and_queue_param_float(&fvcTau_RL_Nm, 	 tau_cmd_RL);
 	update_and_queue_param_float(&fvcTau_RR_Nm, 	 tau_cmd_RR);
+
+	// limit of sum(tau_FL, tau_FR, ...)
+	update_and_queue_param_float(&fvcTauTotalCMD_Nm, tau_total_limit);
 }
 
 void update_inverter_can_params(float ac_cmd_FL, float ac_cmd_FR, float ac_cmd_RL, float ac_cmd_RR,

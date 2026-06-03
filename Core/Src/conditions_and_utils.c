@@ -119,7 +119,7 @@ float calculate_ac_current_limit(){
 }
 
 // Determine Drive Power Limits
-void determine_drive_power_limits(float *ac_limit_Apk, float *dc_limit_A, bool drive_enable){
+void determine_drive_power_limits(float *ac_limit_Apk, float *dc_limit_A, bool *drive_enable){
 	if (vehicle_state != VEHICLE_DRIVING){
 		*ac_limit_Apk = 0;
 		*dc_limit_A   = 0;
