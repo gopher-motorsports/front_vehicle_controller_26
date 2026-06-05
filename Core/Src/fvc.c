@@ -3,10 +3,13 @@
 #include "conditions_and_utils.h"
 #include "fvc_software_faults.h"
 
-// the HAL_CAN struct. This example only works for a single CAN bus
+// HAL_CAN Structs
 CAN_HandleTypeDef* CAN_CARSIDE;
 CAN_HandleTypeDef* CAN_FRONT_INVERTERS;
 CAN_HandleTypeDef* CAN_REAR_INVERTERS;
+
+// HAL_UART Structs
+UART_HandleTypeDef* UART_DEBUG;
 
 // Inverter State Machine Defines:
 uint32_t preDriveStart_ms;
@@ -79,9 +82,16 @@ OPEN_DIFF_OUTPUTS open_diff_outputs = {
 	.currentCMDTotal_Apk = 0.0
 };
 
+// Debug Params
+float fvc_debug_params[DEBUG_PARAM_COUNT];
+float inv1_debug_params[DEBUG_PARAM_COUNT];
+float inv2_debug_params[DEBUG_PARAM_COUNT];
+float inv3_debug_params[DEBUG_PARAM_COUNT];
+float inv4_debug_params[DEBUG_PARAM_COUNT];
+
 // Init FVC
 // What needs to happen on FVC startup 
-void init_fvc(CAN_HandleTypeDef* BUS_1, CAN_HandleTypeDef* BUS_2, CAN_HandleTypeDef* BUS_3){
+void init_fvc(CAN_HandleTypeDef* BUS_1, CAN_HandleTypeDef* BUS_2, CAN_HandleTypeDef* BUS_3, UART_HandleTypeDef* huart_debug){
 	CAN_CARSIDE = BUS_1;
 	CAN_FRONT_INVERTERS = BUS_2;
 	CAN_REAR_INVERTERS = BUS_3;
@@ -89,6 +99,8 @@ void init_fvc(CAN_HandleTypeDef* BUS_1, CAN_HandleTypeDef* BUS_2, CAN_HandleType
 	init_can(CAN_CARSIDE, GCAN0);
 	init_can(CAN_FRONT_INVERTERS, GCAN1);
 	init_can(CAN_REAR_INVERTERS, GCAN2);
+
+	UART_DEBUG = huart_debug;
 
 	init_git_LEDs();
 	init_efuses();
@@ -112,7 +124,13 @@ void idle_task(){
 }
 
 void debug_task(){
-	// TODO add UART functionality here
+	clear_serial_monitor();
+	update_debug_params();
+	send_debug_param_group("FVC",  fvc_debug_params);
+    send_debug_param_group("INV1", inv1_debug_params);
+    send_debug_param_group("INV2", inv2_debug_params);
+	send_debug_param_group("INV3", inv3_debug_params);
+    send_debug_param_group("INV4", inv4_debug_params);
 }
 
 void drive_task(){
@@ -193,7 +211,7 @@ void process_inverter() {
 }
 
 
-/// ======================================== Inverter Controls Functions ======================================================
+// ======================================== Inverter Controls Functions ======================================================
 //In FVC.c to be explicit about producer/consumer data relationships
 void update_drive_inputs(){
 
@@ -297,4 +315,137 @@ void publish_drive_control_snapshot(){
 	drive_snapshot = drive_snapshot_local;
 	osMutexRelease(driveSnapshotMutexHandle);
 
+}
+
+// ======================================== Inverter/FVC Debug Functions ======================================================
+void clear_serial_monitor(){
+	 const char clear_screen[] = "\033[2J\033[H";
+
+    HAL_UART_Transmit(UART_DEBUG,
+                      (uint8_t *)clear_screen,
+                      strlen(clear_screen),
+                      HAL_MAX_DELAY);
+}
+
+void send_debug_param_group(const char *name, float params[DEBUG_PARAM_COUNT]){
+    char msg[192];
+
+    int len = snprintf(msg, sizeof(msg),
+                       "%s, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f\r\n",
+                       name,
+                       params[0], params[1], params[2], params[3], params[4],
+                       params[5], params[6], params[7], params[8], params[9]);
+
+    if (len > 0 && len < sizeof(msg)) {
+        HAL_UART_Transmit(UART_DEBUG, (uint8_t *)msg, (uint16_t)len, HAL_MAX_DELAY);
+    }
+}
+
+void update_debug_params(void){
+    fvc_debug_params[0] = fvcPedalPosition1_mm.data;
+    fvc_debug_params[1] = fvcPedalPosition2_mm.data;
+    fvc_debug_params[2] = TIMED_SOFTWARE_FAULTS[0]->state;
+    fvc_debug_params[3] = TIMED_SOFTWARE_FAULTS[1]->state;
+    fvc_debug_params[4] = TIMED_SOFTWARE_FAULTS[2]->state;
+    fvc_debug_params[5] = get_both_pedals_fault_state();
+    fvc_debug_params[6] = drive_snapshot.drive_timestep_number;
+    fvc_debug_params[7] = tau_by_4_inputs.ac_currentMaxLimit_Apk;
+    fvc_debug_params[8] = tau_by_4_inputs.dc_currentMaxlimit_A;
+    fvc_debug_params[9] = all_inverter_enable;
+
+    // // INV1 / FL
+    // inv1_debug_params[0] = electricalRPM_FL_erpm.data;
+    // inv1_debug_params[1] = motorCurrent_FL_Apk.data;
+    // inv1_debug_params[2] = controllerTemp_FL_C.data;
+    // inv1_debug_params[3] = iqPeak_FL_A.data;
+    // inv1_debug_params[4] = throttleSignal_FL_percent.data;
+    // inv1_debug_params[5] = controlMode_FL.data;
+    // inv1_debug_params[6] = availableMaxCurrent_FL_Apk.data;
+    // inv1_debug_params[7] = availableMaxCurrent_FL_A.data;
+    // inv1_debug_params[8] = faultCode_FL.data;
+    // inv1_debug_params[9] = inputInverterVoltage_FL_V.data;
+
+    // // INV2 / FR
+    // inv2_debug_params[0] = electricalRPM_FR_erpm.data;
+    // inv2_debug_params[1] = motorCurrent_FR_Apk.data;
+    // inv2_debug_params[2] = controllerTemp_FR_C.data;
+    // inv2_debug_params[3] = iqPeak_FR_A.data;
+    // inv2_debug_params[4] = throttleSignal_FR_percent.data;
+    // inv2_debug_params[5] = controlMode_FR.data;
+    // inv2_debug_params[6] = availableMaxCurrent_FR_Apk.data;
+    // inv2_debug_params[7] = availableMaxCurrent_FR_A.data;
+    // inv2_debug_params[8] = faultCode_FR.data;
+    // inv2_debug_params[9] = inputInverterVoltage_FR_V.data;
+
+    // // INV3 / RL
+    // inv3_debug_params[0] = electricalRPM_RL_erpm.data;
+    // inv3_debug_params[1] = motorCurrent_RL_Apk.data;
+    // inv3_debug_params[2] = controllerTemp_RL_C.data;
+    // inv3_debug_params[3] = iqPeak_RL_A.data;
+    // inv3_debug_params[4] = throttleSignal_RL_percent.data;
+    // inv3_debug_params[5] = controlMode_RL.data;
+    // inv3_debug_params[6] = availableMaxCurrent_RL_Apk.data;
+    // inv3_debug_params[7] = availableMaxCurrent_RL_A.data;
+    // inv3_debug_params[8] = faultCode_RL.data;
+    // inv3_debug_params[9] = inputInverterVoltage_RL_V.data;
+
+    // // INV4 / RR
+    // inv4_debug_params[0] = electricalRPM_RR_erpm.data;
+    // inv4_debug_params[1] = motorCurrent_RR_Apk.data;
+    // inv4_debug_params[2] = controllerTemp_RR_C.data;
+    // inv4_debug_params[3] = iqPeak_RR_A.data;
+    // inv4_debug_params[4] = throttleSignal_RR_percent.data;
+    // inv4_debug_params[5] = controlMode_RR.data;
+    // inv4_debug_params[6] = availableMaxCurrent_RR_Apk.data;
+    // inv4_debug_params[7] = availableMaxCurrent_RR_A.data;
+    // inv4_debug_params[8] = faultCode_RR.data;
+    // inv4_debug_params[9] = inputInverterVoltage_RR_V.data;
+
+	    // INV1 / FL
+    inv1_debug_params[0] = inputInverterVoltage_FL_V.info.last_rx;
+    inv1_debug_params[1] = motorCurrent_FL_Apk.info.last_rx;
+    inv1_debug_params[2] = controllerTemp_FL_C.info.last_rx;
+    inv1_debug_params[3] = iqPeak_FL_A.info.last_rx;
+    inv1_debug_params[4] = throttleSignal_FL_percent.info.last_rx;
+    inv1_debug_params[5] = controlMode_FL.info.last_rx;
+    inv1_debug_params[6] = availableMaxCurrent_FL_Apk.info.last_rx;
+    inv1_debug_params[7] = availableMaxCurrent_FL_A.info.last_rx;
+    inv1_debug_params[8] = 0;
+    inv1_debug_params[9] = 0;
+
+    // INV2 / FR
+    inv2_debug_params[0] = inputInverterVoltage_FL_V.info.last_rx;
+    inv2_debug_params[1] = motorCurrent_FR_Apk.info.last_rx;
+    inv2_debug_params[2] = controllerTemp_FR_C.info.last_rx;
+    inv2_debug_params[3] = iqPeak_FR_A.info.last_rx;
+    inv2_debug_params[4] = throttleSignal_FR_percent.info.last_rx;
+    inv2_debug_params[5] = controlMode_FR.info.last_rx;
+    inv2_debug_params[6] = availableMaxCurrent_FR_Apk.info.last_rx;
+    inv2_debug_params[7] = availableMaxCurrent_FR_A.info.last_rx;
+    inv2_debug_params[8] = 0;
+    inv2_debug_params[9] = 0;
+
+    // INV3 / RL
+    inv3_debug_params[0] = inputInverterVoltage_FL_V.info.last_rx;
+    inv3_debug_params[1] = motorCurrent_RL_Apk.info.last_rx;
+    inv3_debug_params[2] = controllerTemp_RL_C.info.last_rx;
+    inv3_debug_params[3] = iqPeak_RL_A.info.last_rx;
+    inv3_debug_params[4] = throttleSignal_RL_percent.info.last_rx;
+    inv3_debug_params[5] = controlMode_RL.info.last_rx;
+    inv3_debug_params[6] = availableMaxCurrent_RL_Apk.info.last_rx;
+    inv3_debug_params[7] = availableMaxCurrent_RL_A.info.last_rx;
+    inv3_debug_params[8] = 0;
+    inv3_debug_params[9] = 0;
+
+    // INV4 / RR
+    inv4_debug_params[0] = inputInverterVoltage_FL_V.info.last_rx;
+    inv4_debug_params[1] = motorCurrent_RR_Apk.info.last_rx;
+    inv4_debug_params[2] = controllerTemp_RR_C.info.last_rx;
+    inv4_debug_params[3] = iqPeak_RR_A.info.last_rx;
+    inv4_debug_params[4] = throttleSignal_RR_percent.info.last_rx;
+    inv4_debug_params[5] = controlMode_RR.info.last_rx;
+    inv4_debug_params[6] = availableMaxCurrent_RR_Apk.info.last_rx;
+    inv4_debug_params[7] = availableMaxCurrent_RR_A.info.last_rx;
+    inv4_debug_params[8] = 0;
+    inv4_debug_params[9] = 0;
 }
