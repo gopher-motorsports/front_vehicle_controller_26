@@ -348,10 +348,10 @@ void update_debug_params(void){
     fvc_debug_params[3] = TIMED_SOFTWARE_FAULTS[1]->state;
     fvc_debug_params[4] = TIMED_SOFTWARE_FAULTS[2]->state;
     fvc_debug_params[5] = get_both_pedals_fault_state();
-    fvc_debug_params[6] = drive_snapshot.drive_timestep_number;
+    fvc_debug_params[6] = all_inverter_enable;
     fvc_debug_params[7] = tau_by_4_inputs.ac_currentMaxLimit_Apk;
     fvc_debug_params[8] = tau_by_4_inputs.dc_currentMaxlimit_A;
-    fvc_debug_params[9] = all_inverter_enable;
+    fvc_debug_params[9] = vehicle_state;
 
     // // INV1 / FL
     // inv1_debug_params[0] = electricalRPM_FL_erpm.data;
