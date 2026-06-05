@@ -147,7 +147,7 @@ int main(void)
   MX_CAN1_Init();
   MX_CAN3_Init();
   /* USER CODE BEGIN 2 */
-  init_fvc(&hcan1, &hcan2, &hcan3);
+  init_fvc(&hcan1, &hcan2, &hcan3, &huart2);
   gsense_init(&hcan2, &hadc1, NULL, NULL, &htim10, Gsense_GPIO_Port, Gsense_Pin);
   /* USER CODE END 2 */
 
