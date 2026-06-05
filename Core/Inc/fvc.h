@@ -90,7 +90,7 @@
 // ============================= FreeRTOS PARAMS =============================
 #define IDLE_TASK_hz	  		  		5
 #define GCAN_BUFFER_TASK_hz	  	  		1000
-#define DEBUG_TASK_hz			  		10
+#define DEBUG_TASK_hz			  		2
 #define DRIVE_TASK_hz			  		100
 #define FAULT_TASK_hz			  		1000
 #define TELEMETRY_TASK_hz		  		200
@@ -105,6 +105,7 @@
 #define MATH_PI             3.14159265f
 #define SECONDS_PER_MINUTE	60.0f
 #define ERPM_TO_M_PER_S		(1.0f / MOTOR_POLE_PAIRS) * (1.0f / DRIVE_TRAIN_GEAR_RATIO) * (2.0f * WHEEL_RADIUS * MATH_PI) * (1.0f / SECONDS_PER_MINUTE)
+#define DEBUG_PARAM_COUNT	10
 
 typedef enum
 {
@@ -200,7 +201,7 @@ typedef struct{
 } DRIVE_CONTROL_SNAPSHOT;
 
 // Init
-void init_fvc(CAN_HandleTypeDef* BUS_1, CAN_HandleTypeDef* BUS_2, CAN_HandleTypeDef* BUS_3);
+void init_fvc(CAN_HandleTypeDef* BUS_1, CAN_HandleTypeDef* BUS_2, CAN_HandleTypeDef* BUS_3, UART_HandleTypeDef* huart_debug);
 
 // FreeRTOS
 void can_buffer_handling_loop();
@@ -218,6 +219,10 @@ void process_inverter();
 void update_drive_inputs();
 void run_simulink_model_and_update_drive_outputs();
 void publish_drive_control_snapshot();
+
+// FVC/Inverter Debug
+void send_debug_param_group(const char *name, float params[DEBUG_PARAM_COUNT]);
+void update_debug_params(void);
 
 extern VEHICLE_STATE_t vehicle_state;
 extern DRIVE_SPEED_MODE_t drive_speed_mode;
