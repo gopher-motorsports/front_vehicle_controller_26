@@ -45,9 +45,9 @@
 #define INPUT_TRIP_DELAY_ms   85     // The amount of time it takes an input fault to take effect, margin from 100
 
 #define APPS_1_MAX_CURRENT_POS_mm  25.00f // The position of the pedal at 100% torque
-#define APPS_1_MIN_CURRENT_POS_mm  5.15f  // The position of the pedal at 0% torque, 3.85mm resting + 1mm = 4.85mm
+#define APPS_1_MIN_CURRENT_POS_mm  5.90f  // The position of the pedal at 0% torque, 3.85mm resting + 1mm = 4.85mm
 #define APPS_2_MAX_CURRENT_POS_mm  25.00f // The position of the pedal at 100% torque
-#define APPS_2_MIN_CURRENT_POS_mm  1.99f  // The position of the pedal at 0% torque, 1.86 mm resting + 1mm = 2.86mm
+#define APPS_2_MIN_CURRENT_POS_mm  3.05f  // The position of the pedal at 0% torque, 1.86 mm resting + 1mm = 2.86mm
 #define APPS_1_TOTAL_TRAVEL_mm ( APPS_1_MAX_CURRENT_POS_mm - APPS_1_MIN_CURRENT_POS_mm )
 #define APPS_2_TOTAL_TRAVEL_mm ( APPS_2_MAX_CURRENT_POS_mm - APPS_2_MIN_CURRENT_POS_mm )
 

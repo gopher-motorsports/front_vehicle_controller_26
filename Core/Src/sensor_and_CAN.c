@@ -77,10 +77,10 @@ void update_non_ADC_CAN_params(){
 	update_and_queue_param_u8(&fvcEfuse12VDispFault_state, FVC_HIGH_POWER_CHANNELS[1]->flt_state);
 
 	// Git Data
-	update_and_queue_param_u8(&fvcGitBranchName, CURRENT_BRANCH);
-	update_and_queue_param_u32(&fvcGitHash_decimal, CURRENT_GIT_HASH_DECIMAL);
-	update_and_queue_param_u8(&fvcGitHasUncommitedChanges, CURRENT_GIT_HAS_CHANGES);
-	update_and_queue_param_u16(&fvcGitTotalUncommitedChanges, CURRENT_GIT_CHANGES_COUNT);
+	//update_and_queue_param_u8(&fvcGitBranchName, CURRENT_BRANCH);
+	//update_and_queue_param_u32(&fvcGitHash_decimal, CURRENT_GIT_HASH_DECIMAL);
+	//update_and_queue_param_u8(&fvcGitHasUncommitedChanges, CURRENT_GIT_HAS_CHANGES);
+	//update_and_queue_param_u16(&fvcGitTotalUncommitedChanges, CURRENT_GIT_CHANGES_COUNT);
 
 }
 //drive_snap_loc.drive_enable_state;	
