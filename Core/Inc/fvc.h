@@ -85,7 +85,7 @@
 #define SLOW_MODE_HOLD_TIME_THRESH		2000
 #define DRIVE_MODEL_HOLD_TIME_THRESH 	1000
 // ============================= Drive Control PARAMS =============================
-#define TRACTION_LIMIT_percent    15.0f	// Past this wheel slip we have broken traction
+#define TRACTION_LIMIT_decimal          0.15f	// Past this wheel slip we have broken traction
 
 // ============================= FreeRTOS PARAMS =============================
 #define IDLE_TASK_hz	  		  		5
@@ -158,8 +158,9 @@ typedef struct {
 } TORQUE_BY_4_OUTPUTS;
 
 typedef struct {
-	float slip_tract_limit_percent;
+	float slip_tract_limit_decimal;
 	float car_speed;
+	float yaw_rate;
 	FVC_DRIVE_SENSOR_DATA fvc_drive_sensor_data;
 	float tauMaxLimit_Nm;
 	float ac_currentMaxLimit_Apk;
@@ -221,6 +222,7 @@ void run_simulink_model_and_update_drive_outputs();
 void publish_drive_control_snapshot();
 
 // FVC/Inverter Debug
+void clear_serial_monitor();
 void send_debug_param_group(const char *name, float params[DEBUG_PARAM_COUNT]);
 void update_debug_params(void);
 
