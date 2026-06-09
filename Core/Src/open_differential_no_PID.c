@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'open_differential_no_PID'.
  *
- * Model version                  : 1.18
+ * Model version                  : 1.27
  * Simulink Coder version         : 24.2 (R2024b) 21-Jun-2024
- * C/C++ source code generated on : Sun Jun  7 01:58:54 2026
+ * C/C++ source code generated on : Tue Jun  9 00:46:38 2026
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex-M
@@ -24,7 +24,7 @@
 #include "rtwtypes.h"
 
 /* Block signals and states (default storage) */
-DW rtDW;
+DW simulink_OD_No_PID_rtDW;
 
 /* External inputs (root inport signals with default storage) */
 ExtU simulink_OD_No_PID_inports;
@@ -39,154 +39,218 @@ RT_MODEL *const rtM = &rtM_;
 /* Model step function */
 void open_differential_no_PID_step(void)
 {
-  real_T rtb_Gain_g;
-  real_T rtb_Max1_idx_0;
-  real_T rtb_Max1_idx_1;
-  real_T rtb_Max1_idx_3;
-  real_T rtb_Product;
+  real_T Vx;
+  real_T Vx_FL;
+  real_T Vx_FR;
+  real_T Vx_RL;
+  real_T positive_slip_FL;
+  real_T positive_slip_FR;
+  real_T rtb_Switch2_idx_2;
+  real_T rtb_Switch2_idx_3;
+  real_T slip_low;
+  real_T yaw_rate_rad_s;
   boolean_T slip_status_FL;
   boolean_T slip_status_FR;
   boolean_T slip_status_RL;
   boolean_T slip_status_RR;
 
-  /* MinMax: '<S4>/Max' incorporates:
-   *  Constant: '<S4>/Constant'
-   *  Constant: '<S4>/Vmin'
+  /* MATLAB Function: '<S4>/MATLAB Function' incorporates:
+   *  Constant: '<S4>/Track_Wdith_Front_m'
+   *  Constant: '<S4>/Track_Wdith_Rear_m'
    *  Inport: '<Root>/Car_Speed(Vx)'
-   *  MinMax: '<S4>/Max2'
-   */
-  rtb_Gain_g = fmax(fmax(simulink_OD_No_PID_inports.Car_SpeedVx, 0.0), 0.2);
-
-  /* MinMax: '<S4>/Max1' incorporates:
-   *  Constant: '<S4>/Constant1'
    *  Inport: '<Root>/Wheel_Speed_FL'
    *  Inport: '<Root>/Wheel_Speed_FR'
    *  Inport: '<Root>/Wheel_Speed_RL'
-   *  Product: '<S4>/Divide'
-   *  Sum: '<S4>/Subtract'
+   *  Inport: '<Root>/Yaw_Rate(deg//s)'
    */
-  rtb_Max1_idx_0 = fmax((simulink_OD_No_PID_inports.Wheel_Speed_FL - rtb_Gain_g) / rtb_Gain_g, 0.0);
-  rtb_Max1_idx_1 = fmax((simulink_OD_No_PID_inports.Wheel_Speed_FR - rtb_Gain_g) / rtb_Gain_g, 0.0);
-  rtb_Max1_idx_3 = fmax((simulink_OD_No_PID_inports.Wheel_Speed_RL - rtb_Gain_g) / rtb_Gain_g, 0.0);
-
-  /* Outport: '<Root>/Slip_FL' */
-  simulink_OD_No_PID_outports.Slip_FL = rtb_Max1_idx_0;
-
-  /* Outport: '<Root>/Slip_FR' */
-  simulink_OD_No_PID_outports.Slip_FR = rtb_Max1_idx_1;
-
-  /* Outport: '<Root>/Slip_RL' */
-  simulink_OD_No_PID_outports.Slip_RL = rtb_Max1_idx_3;
-
-  /* Outport: '<Root>/Slip_RR' incorporates:
-   *  Constant: '<S4>/Constant1'
-   *  Inport: '<Root>/Wheel_Speed_RR'
-   *  MinMax: '<S4>/Max1'
-   *  Product: '<S4>/Divide'
-   *  Sum: '<S4>/Subtract'
-   */
-  simulink_OD_No_PID_outports.Slip_RR = fmax((simulink_OD_No_PID_inports.Wheel_Speed_RR - rtb_Gain_g) / rtb_Gain_g, 0.0);
+  yaw_rate_rad_s = simulink_OD_No_PID_inports.Yaw_Ratedegs * 0.017453292519943295;
+  Vx = fmax(simulink_OD_No_PID_inports.Car_SpeedVx, 0.2);
+  Vx_FR = yaw_rate_rad_s * 1.19 / 2.0;
+  Vx_FL = fmax(Vx - Vx_FR, 0.2);
+  Vx_FR = fmax(Vx_FR + Vx, 0.2);
+  yaw_rate_rad_s = yaw_rate_rad_s * 1.23 / 2.0;
+  Vx_RL = fmax(Vx - yaw_rate_rad_s, 0.2);
+  yaw_rate_rad_s = fmax(yaw_rate_rad_s + Vx, 0.2);
+  Vx_FL = (simulink_OD_No_PID_inports.Wheel_Speed_FL - Vx_FL) / Vx_FL;
+  Vx_FR = (simulink_OD_No_PID_inports.Wheel_Speed_FR - Vx_FR) / Vx_FR;
+  Vx_RL = (simulink_OD_No_PID_inports.Wheel_Speed_RL - Vx_RL) / Vx_RL;
 
   /* Product: '<S5>/Product' incorporates:
    *  Gain: '<S5>/Gain'
    *  Inport: '<Root>/Maximum_Torque'
    *  Inport: '<Root>/Throttle(%)'
    */
-  rtb_Product = 0.01 * simulink_OD_No_PID_inports.Throttle * simulink_OD_No_PID_inports.Maximum_Torque;
+  Vx = 0.01 * simulink_OD_No_PID_inports.Throttle * simulink_OD_No_PID_inports.Maximum_Torque;
 
   /* MATLAB Function: '<S1>/MATLAB Function' incorporates:
    *  Inport: '<Root>/Slip_Traction_Lim'
    */
-  rtb_Gain_g = simulink_OD_No_PID_inports.Slip_Traction_Lim - 0.03;
+  positive_slip_FL = fmax(Vx_FL, 0.0);
+  positive_slip_FR = fmax(Vx_FR, 0.0);
+  slip_low = simulink_OD_No_PID_inports.Slip_Traction_Lim - 0.03;
   if (simulink_OD_No_PID_inports.Slip_Traction_Lim - 0.03 < 0.0) {
-    rtb_Gain_g = 0.0;
+    slip_low = 0.0;
   }
 
-  slip_status_FL = (rtb_Max1_idx_0 > simulink_OD_No_PID_inports.Slip_Traction_Lim);
-  slip_status_FR = (rtb_Max1_idx_1 > simulink_OD_No_PID_inports.Slip_Traction_Lim);
-  rtDW.recovering_traction_o = (slip_status_FL || slip_status_FR ||
-    (((!(rtb_Max1_idx_0 < rtb_Gain_g)) || (!(rtb_Max1_idx_1 < rtb_Gain_g))) &&
-     rtDW.recovering_traction_o));
-  if (rtDW.recovering_traction_o) {
-    rtDW.active_torque_cmd_g -= 0.25;
+  slip_status_FL = (positive_slip_FL > simulink_OD_No_PID_inports.Slip_Traction_Lim);
+  slip_status_FR = (positive_slip_FR > simulink_OD_No_PID_inports.Slip_Traction_Lim);
+  simulink_OD_No_PID_rtDW.recovering_traction_o = (slip_status_FL || slip_status_FR ||
+    (((!(positive_slip_FL < slip_low)) || (!(positive_slip_FR < slip_low))) &&
+     simulink_OD_No_PID_rtDW.recovering_traction_o));
+  if (simulink_OD_No_PID_rtDW.recovering_traction_o) {
+    simulink_OD_No_PID_rtDW.active_torque_cmd_g -= 0.25;
   } else {
-    rtDW.active_torque_cmd_g += 0.25;
+    simulink_OD_No_PID_rtDW.active_torque_cmd_g += 0.25;
   }
 
-  if (rtDW.active_torque_cmd_g > rtb_Product) {
-    rtDW.active_torque_cmd_g = rtb_Product;
+  if (simulink_OD_No_PID_rtDW.active_torque_cmd_g > Vx) {
+    simulink_OD_No_PID_rtDW.active_torque_cmd_g = Vx;
   }
 
-  if (rtDW.active_torque_cmd_g < 0.0) {
-    rtDW.active_torque_cmd_g = 0.0;
+  if (simulink_OD_No_PID_rtDW.active_torque_cmd_g < 0.0) {
+    simulink_OD_No_PID_rtDW.active_torque_cmd_g = 0.0;
   }
 
   /* MATLAB Function: '<S2>/MATLAB Function' incorporates:
    *  Inport: '<Root>/Slip_Traction_Lim'
    *  MATLAB Function: '<S1>/MATLAB Function'
    */
-  rtb_Gain_g = simulink_OD_No_PID_inports.Slip_Traction_Lim - 0.03;
+  positive_slip_FL = fmax(Vx_RL, 0.0);
+  slip_low = simulink_OD_No_PID_inports.Slip_Traction_Lim - 0.03;
   if (simulink_OD_No_PID_inports.Slip_Traction_Lim - 0.03 < 0.0) {
-    rtb_Gain_g = 0.0;
+    slip_low = 0.0;
   }
 
-  slip_status_RL = (rtb_Max1_idx_3 > simulink_OD_No_PID_inports.Slip_Traction_Lim);
-  slip_status_RR = (rtb_Max1_idx_3 > simulink_OD_No_PID_inports.Slip_Traction_Lim);
-  rtDW.recovering_traction = (slip_status_RL || slip_status_RR ||
-    ((!(rtb_Max1_idx_3 < rtb_Gain_g)) && rtDW.recovering_traction));
-  if (rtDW.recovering_traction) {
-    rtDW.active_torque_cmd -= 0.25;
+  slip_status_RL = (positive_slip_FL > simulink_OD_No_PID_inports.Slip_Traction_Lim);
+  slip_status_RR = (positive_slip_FL > simulink_OD_No_PID_inports.Slip_Traction_Lim);
+  simulink_OD_No_PID_rtDW.recovering_traction = (slip_status_RL || slip_status_RR ||
+    ((!(positive_slip_FL < slip_low)) && simulink_OD_No_PID_rtDW.recovering_traction));
+  if (simulink_OD_No_PID_rtDW.recovering_traction) {
+    simulink_OD_No_PID_rtDW.active_torque_cmd -= 0.25;
   } else {
-    rtDW.active_torque_cmd += 0.25;
+    simulink_OD_No_PID_rtDW.active_torque_cmd += 0.25;
   }
 
-  if (rtDW.active_torque_cmd > rtb_Product) {
-    rtDW.active_torque_cmd = rtb_Product;
+  if (simulink_OD_No_PID_rtDW.active_torque_cmd > Vx) {
+    simulink_OD_No_PID_rtDW.active_torque_cmd = Vx;
   }
 
-  if (rtDW.active_torque_cmd < 0.0) {
-    rtDW.active_torque_cmd = 0.0;
+  if (simulink_OD_No_PID_rtDW.active_torque_cmd < 0.0) {
+    simulink_OD_No_PID_rtDW.active_torque_cmd = 0.0;
+  }
+
+  /* Gain: '<S3>/Gain1' incorporates:
+   *  Inport: '<Root>/Maximum_Torque'
+   */
+  slip_low = 0.25 * simulink_OD_No_PID_inports.Maximum_Torque;
+
+  /* Switch: '<S9>/Switch2' incorporates:
+   *  MATLAB Function: '<S1>/MATLAB Function'
+   *  RelationalOperator: '<S9>/LowerRelop1'
+   */
+  if (simulink_OD_No_PID_rtDW.active_torque_cmd_g > slip_low) {
+    rtb_Switch2_idx_2 = slip_low;
+  } else {
+    rtb_Switch2_idx_2 = simulink_OD_No_PID_rtDW.active_torque_cmd_g;
   }
 
   /* Gain: '<S3>/1//kt' incorporates:
-   *  MATLAB Function: '<S1>/MATLAB Function'
-   *  MATLAB Function: '<S2>/MATLAB Function'
+   *  Switch: '<S9>/Switch2'
    */
-  rtb_Max1_idx_1 = 3.8910505836575875 * rtDW.active_torque_cmd_g;
-  rtb_Max1_idx_0 = rtb_Max1_idx_1;
-  rtb_Max1_idx_3 = 3.8910505836575875 * rtDW.active_torque_cmd;
+  positive_slip_FL = 3.8910505836575875 * rtb_Switch2_idx_2;
+
+  /* Switch: '<S9>/Switch2' incorporates:
+   *  MATLAB Function: '<S1>/MATLAB Function'
+   *  RelationalOperator: '<S9>/LowerRelop1'
+   */
+  if (simulink_OD_No_PID_rtDW.active_torque_cmd_g > slip_low) {
+    rtb_Switch2_idx_2 = slip_low;
+  } else {
+    rtb_Switch2_idx_2 = simulink_OD_No_PID_rtDW.active_torque_cmd_g;
+  }
+
+  /* Gain: '<S3>/1//kt' incorporates:
+   *  Switch: '<S9>/Switch2'
+   */
+  positive_slip_FR = 3.8910505836575875 * rtb_Switch2_idx_2;
+
+  /* Switch: '<S9>/Switch2' incorporates:
+   *  MATLAB Function: '<S2>/MATLAB Function'
+   *  RelationalOperator: '<S9>/LowerRelop1'
+   */
+  if (simulink_OD_No_PID_rtDW.active_torque_cmd > slip_low) {
+    rtb_Switch2_idx_2 = slip_low;
+  } else {
+    rtb_Switch2_idx_2 = simulink_OD_No_PID_rtDW.active_torque_cmd;
+    slip_low = simulink_OD_No_PID_rtDW.active_torque_cmd;
+  }
+
+  /* Gain: '<S3>/1//kt' incorporates:
+   *  Switch: '<S9>/Switch2'
+   */
+  rtb_Switch2_idx_2 *= 3.8910505836575875;
+  rtb_Switch2_idx_3 = 3.8910505836575875 * slip_low;
 
   /* Gain: '<S3>/Gain' incorporates:
    *  Inport: '<Root>/Current_Limit'
    */
-  rtb_Gain_g = 0.25 * simulink_OD_No_PID_inports.Current_Limit;
+  slip_low = 0.25 * simulink_OD_No_PID_inports.Current_Limit;
 
   /* Switch: '<S8>/Switch2' incorporates:
-   *  Gain: '<S3>/1//kt'
+   *  Constant: '<S3>/Constant'
    *  RelationalOperator: '<S8>/LowerRelop1'
+   *  RelationalOperator: '<S8>/UpperRelop'
+   *  Switch: '<S8>/Switch'
    */
-  if (rtb_Max1_idx_1 > rtb_Gain_g) {
-    rtb_Max1_idx_0 = rtb_Gain_g;
-    rtb_Max1_idx_1 = rtb_Gain_g;
+  if (positive_slip_FL > slip_low) {
+    positive_slip_FL = slip_low;
+  } else if (positive_slip_FL < 0.0) {
+    /* Switch: '<S8>/Switch' incorporates:
+     *  Constant: '<S3>/Constant'
+     */
+    positive_slip_FL = 0.0;
   }
 
-  if (rtb_Max1_idx_3 > rtb_Gain_g) {
-    rtb_Max1_idx_3 = rtb_Gain_g;
+  if (positive_slip_FR > slip_low) {
+    positive_slip_FR = slip_low;
+  } else if (positive_slip_FR < 0.0) {
+    /* Switch: '<S8>/Switch' incorporates:
+     *  Constant: '<S3>/Constant'
+     */
+    positive_slip_FR = 0.0;
+  }
+
+  if (rtb_Switch2_idx_2 > slip_low) {
+    rtb_Switch2_idx_2 = slip_low;
+  } else if (rtb_Switch2_idx_2 < 0.0) {
+    /* Switch: '<S8>/Switch' incorporates:
+     *  Constant: '<S3>/Constant'
+     */
+    rtb_Switch2_idx_2 = 0.0;
+  }
+
+  if (rtb_Switch2_idx_3 > slip_low) {
+    rtb_Switch2_idx_3 = slip_low;
+  } else if (rtb_Switch2_idx_3 < 0.0) {
+    /* Switch: '<S8>/Switch' incorporates:
+     *  Constant: '<S3>/Constant'
+     */
+    rtb_Switch2_idx_3 = 0.0;
   }
 
   /* End of Switch: '<S8>/Switch2' */
 
   /* Outport: '<Root>/Current_FL' */
-  simulink_OD_No_PID_outports.Current_FL = rtb_Max1_idx_0;
+  simulink_OD_No_PID_outports.Current_FL = positive_slip_FL;
 
   /* Outport: '<Root>/Current_FR' */
-  simulink_OD_No_PID_outports.Current_FR = rtb_Max1_idx_1;
+  simulink_OD_No_PID_outports.Current_FR = positive_slip_FR;
 
   /* Outport: '<Root>/Current_RL' */
-  simulink_OD_No_PID_outports.Current_RL = rtb_Max1_idx_3;
+  simulink_OD_No_PID_outports.Current_RL = rtb_Switch2_idx_2;
 
   /* Outport: '<Root>/Current_RR' */
-  simulink_OD_No_PID_outports.Current_RR = rtb_Max1_idx_3;
+  simulink_OD_No_PID_outports.Current_RR = rtb_Switch2_idx_3;
 
   /* Outport: '<Root>/slip_status_RL' incorporates:
    *  MATLAB Function: '<S2>/MATLAB Function'
@@ -201,12 +265,12 @@ void open_differential_no_PID_step(void)
   /* Outport: '<Root>/Torque_RL' incorporates:
    *  MATLAB Function: '<S2>/MATLAB Function'
    */
-  simulink_OD_No_PID_outports.Torque_RL = rtDW.active_torque_cmd;
+  simulink_OD_No_PID_outports.Torque_RL = simulink_OD_No_PID_rtDW.active_torque_cmd;
 
   /* Outport: '<Root>/Torque_RR' incorporates:
    *  MATLAB Function: '<S2>/MATLAB Function'
    */
-  simulink_OD_No_PID_outports.Torque_RR = rtDW.active_torque_cmd;
+  simulink_OD_No_PID_outports.Torque_RR = simulink_OD_No_PID_rtDW.active_torque_cmd;
 
   /* Outport: '<Root>/slip_status_FL' incorporates:
    *  MATLAB Function: '<S1>/MATLAB Function'
@@ -221,20 +285,35 @@ void open_differential_no_PID_step(void)
   /* Outport: '<Root>/Torque_FL' incorporates:
    *  MATLAB Function: '<S1>/MATLAB Function'
    */
-  simulink_OD_No_PID_outports.Torque_FL = rtDW.active_torque_cmd_g;
+  simulink_OD_No_PID_outports.Torque_FL = simulink_OD_No_PID_rtDW.active_torque_cmd_g;
 
   /* Outport: '<Root>/Torque_FR' incorporates:
    *  MATLAB Function: '<S1>/MATLAB Function'
    */
-  simulink_OD_No_PID_outports.Torque_FR = rtDW.active_torque_cmd_g;
+  simulink_OD_No_PID_outports.Torque_FR = simulink_OD_No_PID_rtDW.active_torque_cmd_g;
 
   /* Outport: '<Root>/Total_Torque_Cmd' */
-  simulink_OD_No_PID_outports.Total_Torque_Cmd = rtb_Product;
+  simulink_OD_No_PID_outports.Total_Torque_Cmd = Vx;
 
   /* Outport: '<Root>/Total_Current_Cmd' incorporates:
    *  Gain: '<S5>/Gain1'
    */
-  simulink_OD_No_PID_outports.Total_Current_Cmd = 3.8910505836575875 * rtb_Product;
+  simulink_OD_No_PID_outports.Total_Current_Cmd = 3.8910505836575875 * Vx;
+
+  /* Outport: '<Root>/Slip_FL' */
+  simulink_OD_No_PID_outports.Slip_FL = Vx_FL;
+
+  /* Outport: '<Root>/Slip_FR' */
+  simulink_OD_No_PID_outports.Slip_FR = Vx_FR;
+
+  /* Outport: '<Root>/Slip_RL' */
+  simulink_OD_No_PID_outports.Slip_RL = Vx_RL;
+
+  /* Outport: '<Root>/Slip_RR' incorporates:
+   *  Inport: '<Root>/Wheel_Speed_RR'
+   *  MATLAB Function: '<S4>/MATLAB Function'
+   */
+  simulink_OD_No_PID_outports.Slip_RR = (simulink_OD_No_PID_inports.Wheel_Speed_RR - yaw_rate_rad_s) / yaw_rate_rad_s;
 }
 
 /* Model initialize function */

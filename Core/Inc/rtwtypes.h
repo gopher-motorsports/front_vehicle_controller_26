@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'open_differential_no_PID'.
  *
- * Model version                  : 1.18
+ * Model version                  : 1.27
  * Simulink Coder version         : 24.2 (R2024b) 21-Jun-2024
- * C/C++ source code generated on : Sun Jun  7 01:58:54 2026
+ * C/C++ source code generated on : Tue Jun  9 00:46:38 2026
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex-M

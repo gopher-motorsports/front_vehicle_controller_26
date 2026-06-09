@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'open_differential_no_PID'.
  *
- * Model version                  : 1.18
+ * Model version                  : 1.27
  * Simulink Coder version         : 24.2 (R2024b) 21-Jun-2024
- * C/C++ source code generated on : Sun Jun  7 01:58:54 2026
+ * C/C++ source code generated on : Tue Jun  9 00:46:38 2026
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex-M
@@ -24,8 +24,6 @@
 #ifndef open_differential_no_PID_COMMON_INCLUDES_
 #define open_differential_no_PID_COMMON_INCLUDES_
 #include "rtwtypes.h"
-// #include "rtw_continuous.h"
-// #include "rtw_solver.h"
 #include "math.h"
 #endif                           /* open_differential_no_PID_COMMON_INCLUDES_ */
 
@@ -60,6 +58,7 @@ typedef struct {
   real_T Slip_Traction_Lim;            /* '<Root>/Slip_Traction_Lim' */
   real_T Throttle;                     /* '<Root>/Throttle(%)' */
   real_T Current_Limit;                /* '<Root>/Current_Limit' */
+  real_T Yaw_Ratedegs;                 /* '<Root>/Yaw_Rate(deg//s)' */
 } ExtU;
 
 /* External outputs (root outports fed by signals with default storage) */
@@ -90,7 +89,7 @@ struct tag_RTM {
 };
 
 /* Block signals and states (default storage) */
-extern DW rtDW;
+extern DW simulink_OD_No_PID_rtDW;
 
 /* External inputs (root inport signals with default storage) */
 extern ExtU simulink_OD_No_PID_inports;
@@ -110,6 +109,8 @@ extern RT_MODEL *const rtM;
  *
  * Block '<S8>/Data Type Duplicate' : Unused code path elimination
  * Block '<S8>/Data Type Propagation' : Unused code path elimination
+ * Block '<S9>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S9>/Data Type Propagation' : Unused code path elimination
  */
 
 /*-
@@ -135,6 +136,8 @@ extern RT_MODEL *const rtM;
  * '<S6>'   : 'open_differential_no_PID/Front Axle Torque Calculation/MATLAB Function'
  * '<S7>'   : 'open_differential_no_PID/Front Axle Torque Calculation1/MATLAB Function'
  * '<S8>'   : 'open_differential_no_PID/Limits/Saturation Dynamic1'
+ * '<S9>'   : 'open_differential_no_PID/Limits/Saturation Dynamic2'
+ * '<S10>'  : 'open_differential_no_PID/Slip Calculator /MATLAB Function'
  */
 #endif                                 /* open_differential_no_PID_h_ */
 
