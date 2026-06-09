@@ -9,7 +9,7 @@
  *
  * Model version                  : 1.18
  * Simulink Coder version         : 24.2 (R2024b) 21-Jun-2024
- * C/C++ source code generated on : Tue Jun  9 03:35:46 2026
+ * C/C++ source code generated on : Tue Jun  9 04:11:39 2026
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex-M
@@ -45,8 +45,8 @@ ExtU simulink_OD_inports;
 ExtY simulink_OD_outports;
 
 /* Real-time model */
-static RT_MODEL rtM_;
-RT_MODEL *const rtM = &rtM_;
+static RT_MODEL simulink_OD_rtM_;
+RT_MODEL *const simulink_OD_rtM = &simulink_OD_rtM_;
 static ZCEventType rt_ZCFcn(ZCDirection zcDir, ZCSigState *prevZc, real_T
   currValue);
 
