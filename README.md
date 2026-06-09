@@ -32,6 +32,10 @@ It is the persistent source of truth for branch enum numbering.
 | 14 | `FEATURE_UART_DEBUGGING` | `FEATURE` | `feature-UART-Debugging` |
 | 15 | `FEATURE_YAML_CONFIG` | `FEATURE` | `feature-Yaml-Config` |
 | 16 | `FEATURE_DRIVE_SENSOR_FAULT_LOGIC` | `FEATURE` | `feature-Drive-Sensor-Fault-Logic` |
+| 17 | `FEATURE_DIGITAL_LOWPASS_FILTERING` | `FEATURE` | `feature-Digital-Lowpass-Filtering` |
+| 18 | `FEATURE_DRIVE_MODE_TOGGLES` | `FEATURE` | `feature-Drive-Mode-Toggles` |
+| 19 | `FEATURE_TORQUE_BY_4` | `FEATURE` | `feature-Torque-By-4` |
+| 20 | `BUGFIX_CHANGE_INVERTER_IDS` | `OTHER` | `bugfix-Change-Inverter-Ids` |
 
 ## Notes
 

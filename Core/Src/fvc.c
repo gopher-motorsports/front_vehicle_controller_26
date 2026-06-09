@@ -256,13 +256,16 @@ void run_simulink_model_and_update_drive_outputs(){
 		default:
 			// Torque
 			tau_by_4_outputs.tauTotalCMD_Nm = (tau_by_4_inputs.throttle_percent) * (tau_by_4_inputs.tauMaxLimit_Nm);
+			tau_by_4_outputs.tauTotalCMD_Nm = fmaxf(tau_by_4_outputs.tauTotalCMD_Nm, tau_by_4_inputs.tauMaxLimit_Nm);
+
 			tau_by_4_outputs.tauFL_Nm = tau_by_4_outputs.tauTotalCMD_Nm / TOTAL_INVERTERS;
 			tau_by_4_outputs.tauFR_Nm = tau_by_4_outputs.tauFL_Nm;
 			tau_by_4_outputs.tauRL_Nm = tau_by_4_outputs.tauFL_Nm;
 			tau_by_4_outputs.tauRR_Nm = tau_by_4_outputs.tauFL_Nm;
 
 			// Current
-			tau_by_4_outputs.currentCMDTotal_Apk = tau_by_4_outputs.tauTotalCMD_Nm / Kt;
+			tau_by_4_outputs.currentCMDTotal_Apk = fmaxf(tau_by_4_outputs.tauTotalCMD_Nm / Kt, 
+														 tau_by_4_inputs.ac_currentMaxLimit_Apk);
 			tau_by_4_outputs.currentCMDFL_Apk = tau_by_4_outputs.currentCMDTotal_Apk / TOTAL_INVERTERS;
 			tau_by_4_outputs.currentCMDFR_Apk = tau_by_4_outputs.currentCMDFL_Apk;
 			tau_by_4_outputs.currentCMDRL_Apk = tau_by_4_outputs.currentCMDFL_Apk;
