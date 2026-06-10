@@ -277,6 +277,7 @@ void update_drive_inputs(){
 			determine_drive_power_limits(&open_diff_no_pid_inputs.ac_currentMaxLimit_Apk,
 										 &open_diff_no_pid_inputs.dc_currentMaxlimit_A, &all_inverter_enable);
 			break;
+			
 		case OPEN_DIFF:
 			open_diff_inputs.car_speed      = vnavVelBodyX.data;
 			open_diff_inputs.yaw_rate		= vnavGyroBodyZ.data;
@@ -297,8 +298,10 @@ void update_drive_inputs(){
 			determine_drive_power_limits(&open_diff_inputs.ac_currentMaxLimit_Apk,
 										 &open_diff_inputs.dc_currentMaxlimit_A, &all_inverter_enable);
 			break;
+
 		case TORQUE_VECTORING:
 			break;
+
 		case TORQUE_BY_4:
 		default:
 			osMutexWait(fvcDriveSensorsMutexHandle, osWaitForever);
@@ -353,6 +356,7 @@ void run_simulink_model_and_update_drive_outputs(){
 			open_diff_no_pid_outputs.currentCMDRR_Apk = simulink_OD_No_PID_outports.Current_RR;
 			open_diff_no_pid_outputs.currentCMDTotal_Apk = simulink_OD_No_PID_outports.Total_Current_Cmd;
 			break;
+
 		case OPEN_DIFF:
 			simulink_OD_inports.Wheel_Speed_FL = open_diff_inputs.fvc_drive_sensor_data.wheel_speed_FL;
 			simulink_OD_inports.Wheel_Speed_FR = open_diff_inputs.fvc_drive_sensor_data.wheel_speed_FR;
@@ -393,8 +397,10 @@ void run_simulink_model_and_update_drive_outputs(){
 			open_diff_outputs.currentCMDRR_Apk = simulink_OD_outports.Current_RR;
 			open_diff_outputs.currentCMDTotal_Apk = simulink_OD_outports.Total_Current_Cmd;
 			break;
+
 		case TORQUE_VECTORING:
 			break;
+
 		case TORQUE_BY_4:
 		default:
 			// Torque
@@ -512,7 +518,7 @@ void send_debug_param_group(const char *name, float params[DEBUG_PARAM_COUNT]){
     char msg[192];
 
     int len = snprintf(msg, sizeof(msg),
-                       "%s, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f\r\n",
+                       "%s, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f\r\n",
                        name,
                        params[0], params[1], params[2], params[3], params[4],
                        params[5], params[6], params[7], params[8], params[9]);
