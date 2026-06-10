@@ -5,11 +5,11 @@
  *
  * File: rtwtypes.h
  *
- * Code generated for Simulink model 'open_differential'.
+ * Code generated for Simulink model 'open_differential_no_PID'.
  *
- * Model version                  : 1.18
+ * Model version                  : 1.28
  * Simulink Coder version         : 24.2 (R2024b) 21-Jun-2024
- * C/C++ source code generated on : Tue Jun  9 04:11:39 2026
+ * C/C++ source code generated on : Wed Jun 10 02:57:15 2026
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex-M

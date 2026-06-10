@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'open_differential_no_PID'.
  *
- * Model version                  : 1.27
+ * Model version                  : 1.28
  * Simulink Coder version         : 24.2 (R2024b) 21-Jun-2024
- * C/C++ source code generated on : Tue Jun  9 00:46:38 2026
+ * C/C++ source code generated on : Wed Jun 10 02:57:15 2026
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex-M
@@ -37,15 +37,15 @@
 #endif
 
 /* Forward declaration for rtModel */
-typedef struct tag_RTM RT_MODEL;
+typedef struct tag_RTM_OD_No_PID RT_MODEL_OD_No_PID;
 
 /* Block signals and states (default storage) for system '<Root>' */
 typedef struct {
-  real_T active_torque_cmd;            /* '<S2>/MATLAB Function' */
+  real_T active_torque_cmd;            /* '<S3>/MATLAB Function' */
   real_T active_torque_cmd_g;          /* '<S1>/MATLAB Function' */
-  boolean_T recovering_traction;       /* '<S2>/MATLAB Function' */
+  boolean_T recovering_traction;       /* '<S3>/MATLAB Function' */
   boolean_T recovering_traction_o;     /* '<S1>/MATLAB Function' */
-} DW;
+} DW_OD_No_PID;
 
 /* External inputs (root inport signals with default storage) */
 typedef struct {
@@ -59,7 +59,7 @@ typedef struct {
   real_T Throttle;                     /* '<Root>/Throttle(%)' */
   real_T Current_Limit;                /* '<Root>/Current_Limit' */
   real_T Yaw_Ratedegs;                 /* '<Root>/Yaw_Rate(deg//s)' */
-} ExtU;
+} ExtU_OD_No_PID;
 
 /* External outputs (root outports fed by signals with default storage) */
 typedef struct {
@@ -81,36 +81,36 @@ typedef struct {
   real_T Current_RL;                   /* '<Root>/Current_RL' */
   real_T Current_RR;                   /* '<Root>/Current_RR' */
   real_T Total_Current_Cmd;            /* '<Root>/Total_Current_Cmd' */
-} ExtY;
+} ExtY_OD_No_PID;
 
 /* Real-time Model Data Structure */
-struct tag_RTM {
+struct tag_RTM_OD_No_PID {
   const char_T * volatile errorStatus;
 };
 
 /* Block signals and states (default storage) */
-extern DW simulink_OD_No_PID_rtDW;
+extern DW_OD_No_PID simulink_OD_No_PID_rtDW;
 
 /* External inputs (root inport signals with default storage) */
-extern ExtU simulink_OD_No_PID_inports;
+extern ExtU_OD_No_PID simulink_OD_No_PID_inports;
 
 /* External outputs (root outports fed by signals with default storage) */
-extern ExtY simulink_OD_No_PID_outports;
+extern ExtY_OD_No_PID simulink_OD_No_PID_outports;
 
 /* Model entry point functions */
 extern void open_differential_no_PID_initialize(void);
 extern void open_differential_no_PID_step(void);
 
 /* Real-time Model object */
-extern RT_MODEL *const rtM;
+extern RT_MODEL_OD_No_PID *const simulink_OD_No_PID_rtM;
 
 /*-
  * These blocks were eliminated from the model due to optimizations:
  *
+ * Block '<S7>/Data Type Duplicate' : Unused code path elimination
+ * Block '<S7>/Data Type Propagation' : Unused code path elimination
  * Block '<S8>/Data Type Duplicate' : Unused code path elimination
  * Block '<S8>/Data Type Propagation' : Unused code path elimination
- * Block '<S9>/Data Type Duplicate' : Unused code path elimination
- * Block '<S9>/Data Type Propagation' : Unused code path elimination
  */
 
 /*-
@@ -129,14 +129,14 @@ extern RT_MODEL *const rtM;
  *
  * '<Root>' : 'open_differential_no_PID'
  * '<S1>'   : 'open_differential_no_PID/Front Axle Torque Calculation'
- * '<S2>'   : 'open_differential_no_PID/Front Axle Torque Calculation1'
- * '<S3>'   : 'open_differential_no_PID/Limits'
+ * '<S2>'   : 'open_differential_no_PID/Limits'
+ * '<S3>'   : 'open_differential_no_PID/Rear Axle Torque Calculation'
  * '<S4>'   : 'open_differential_no_PID/Slip Calculator '
  * '<S5>'   : 'open_differential_no_PID/Torque Limiting'
  * '<S6>'   : 'open_differential_no_PID/Front Axle Torque Calculation/MATLAB Function'
- * '<S7>'   : 'open_differential_no_PID/Front Axle Torque Calculation1/MATLAB Function'
- * '<S8>'   : 'open_differential_no_PID/Limits/Saturation Dynamic1'
- * '<S9>'   : 'open_differential_no_PID/Limits/Saturation Dynamic2'
+ * '<S7>'   : 'open_differential_no_PID/Limits/Saturation Dynamic1'
+ * '<S8>'   : 'open_differential_no_PID/Limits/Saturation Dynamic2'
+ * '<S9>'   : 'open_differential_no_PID/Rear Axle Torque Calculation/MATLAB Function'
  * '<S10>'  : 'open_differential_no_PID/Slip Calculator /MATLAB Function'
  */
 #endif                                 /* open_differential_no_PID_h_ */

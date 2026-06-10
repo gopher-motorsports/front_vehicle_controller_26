@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'open_differential_no_PID'.
  *
- * Model version                  : 1.27
+ * Model version                  : 1.28
  * Simulink Coder version         : 24.2 (R2024b) 21-Jun-2024
- * C/C++ source code generated on : Tue Jun  9 00:46:38 2026
+ * C/C++ source code generated on : Wed Jun 10 02:57:15 2026
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex-M
@@ -24,17 +24,17 @@
 #include "rtwtypes.h"
 
 /* Block signals and states (default storage) */
-DW simulink_OD_No_PID_rtDW;
+DW_OD_No_PID simulink_OD_No_PID_rtDW;
 
 /* External inputs (root inport signals with default storage) */
-ExtU simulink_OD_No_PID_inports;
+ExtU_OD_No_PID simulink_OD_No_PID_inports;
 
 /* External outputs (root outports fed by signals with default storage) */
-ExtY simulink_OD_No_PID_outports;
+ExtY_OD_No_PID simulink_OD_No_PID_outports;
 
 /* Real-time model */
-static RT_MODEL rtM_;
-RT_MODEL *const rtM = &rtM_;
+static RT_MODEL_OD_No_PID simulink_OD_No_PID_rtM_;
+RT_MODEL_OD_No_PID *const simulink_OD_No_PID_rtM = &simulink_OD_No_PID_rtM_;
 
 /* Model step function */
 void open_differential_no_PID_step(void)
@@ -111,7 +111,7 @@ void open_differential_no_PID_step(void)
     simulink_OD_No_PID_rtDW.active_torque_cmd_g = 0.0;
   }
 
-  /* MATLAB Function: '<S2>/MATLAB Function' incorporates:
+  /* MATLAB Function: '<S3>/MATLAB Function' incorporates:
    *  Inport: '<Root>/Slip_Traction_Lim'
    *  MATLAB Function: '<S1>/MATLAB Function'
    */
@@ -139,14 +139,14 @@ void open_differential_no_PID_step(void)
     simulink_OD_No_PID_rtDW.active_torque_cmd = 0.0;
   }
 
-  /* Gain: '<S3>/Gain1' incorporates:
+  /* Gain: '<S2>/Gain1' incorporates:
    *  Inport: '<Root>/Maximum_Torque'
    */
   slip_low = 0.25 * simulink_OD_No_PID_inports.Maximum_Torque;
 
-  /* Switch: '<S9>/Switch2' incorporates:
+  /* Switch: '<S8>/Switch2' incorporates:
    *  MATLAB Function: '<S1>/MATLAB Function'
-   *  RelationalOperator: '<S9>/LowerRelop1'
+   *  RelationalOperator: '<S8>/LowerRelop1'
    */
   if (simulink_OD_No_PID_rtDW.active_torque_cmd_g > slip_low) {
     rtb_Switch2_idx_2 = slip_low;
@@ -154,14 +154,14 @@ void open_differential_no_PID_step(void)
     rtb_Switch2_idx_2 = simulink_OD_No_PID_rtDW.active_torque_cmd_g;
   }
 
-  /* Gain: '<S3>/1//kt' incorporates:
-   *  Switch: '<S9>/Switch2'
+  /* Gain: '<S2>/1//kt' incorporates:
+   *  Switch: '<S8>/Switch2'
    */
   positive_slip_FL = 3.8910505836575875 * rtb_Switch2_idx_2;
 
-  /* Switch: '<S9>/Switch2' incorporates:
+  /* Switch: '<S8>/Switch2' incorporates:
    *  MATLAB Function: '<S1>/MATLAB Function'
-   *  RelationalOperator: '<S9>/LowerRelop1'
+   *  RelationalOperator: '<S8>/LowerRelop1'
    */
   if (simulink_OD_No_PID_rtDW.active_torque_cmd_g > slip_low) {
     rtb_Switch2_idx_2 = slip_low;
@@ -169,14 +169,14 @@ void open_differential_no_PID_step(void)
     rtb_Switch2_idx_2 = simulink_OD_No_PID_rtDW.active_torque_cmd_g;
   }
 
-  /* Gain: '<S3>/1//kt' incorporates:
-   *  Switch: '<S9>/Switch2'
+  /* Gain: '<S2>/1//kt' incorporates:
+   *  Switch: '<S8>/Switch2'
    */
   positive_slip_FR = 3.8910505836575875 * rtb_Switch2_idx_2;
 
-  /* Switch: '<S9>/Switch2' incorporates:
-   *  MATLAB Function: '<S2>/MATLAB Function'
-   *  RelationalOperator: '<S9>/LowerRelop1'
+  /* Switch: '<S8>/Switch2' incorporates:
+   *  MATLAB Function: '<S3>/MATLAB Function'
+   *  RelationalOperator: '<S8>/LowerRelop1'
    */
   if (simulink_OD_No_PID_rtDW.active_torque_cmd > slip_low) {
     rtb_Switch2_idx_2 = slip_low;
@@ -185,28 +185,28 @@ void open_differential_no_PID_step(void)
     slip_low = simulink_OD_No_PID_rtDW.active_torque_cmd;
   }
 
-  /* Gain: '<S3>/1//kt' incorporates:
-   *  Switch: '<S9>/Switch2'
+  /* Gain: '<S2>/1//kt' incorporates:
+   *  Switch: '<S8>/Switch2'
    */
   rtb_Switch2_idx_2 *= 3.8910505836575875;
   rtb_Switch2_idx_3 = 3.8910505836575875 * slip_low;
 
-  /* Gain: '<S3>/Gain' incorporates:
+  /* Gain: '<S2>/Gain' incorporates:
    *  Inport: '<Root>/Current_Limit'
    */
   slip_low = 0.25 * simulink_OD_No_PID_inports.Current_Limit;
 
-  /* Switch: '<S8>/Switch2' incorporates:
-   *  Constant: '<S3>/Constant'
-   *  RelationalOperator: '<S8>/LowerRelop1'
-   *  RelationalOperator: '<S8>/UpperRelop'
-   *  Switch: '<S8>/Switch'
+  /* Switch: '<S7>/Switch2' incorporates:
+   *  Constant: '<S2>/Constant'
+   *  RelationalOperator: '<S7>/LowerRelop1'
+   *  RelationalOperator: '<S7>/UpperRelop'
+   *  Switch: '<S7>/Switch'
    */
   if (positive_slip_FL > slip_low) {
     positive_slip_FL = slip_low;
   } else if (positive_slip_FL < 0.0) {
-    /* Switch: '<S8>/Switch' incorporates:
-     *  Constant: '<S3>/Constant'
+    /* Switch: '<S7>/Switch' incorporates:
+     *  Constant: '<S2>/Constant'
      */
     positive_slip_FL = 0.0;
   }
@@ -214,8 +214,8 @@ void open_differential_no_PID_step(void)
   if (positive_slip_FR > slip_low) {
     positive_slip_FR = slip_low;
   } else if (positive_slip_FR < 0.0) {
-    /* Switch: '<S8>/Switch' incorporates:
-     *  Constant: '<S3>/Constant'
+    /* Switch: '<S7>/Switch' incorporates:
+     *  Constant: '<S2>/Constant'
      */
     positive_slip_FR = 0.0;
   }
@@ -223,8 +223,8 @@ void open_differential_no_PID_step(void)
   if (rtb_Switch2_idx_2 > slip_low) {
     rtb_Switch2_idx_2 = slip_low;
   } else if (rtb_Switch2_idx_2 < 0.0) {
-    /* Switch: '<S8>/Switch' incorporates:
-     *  Constant: '<S3>/Constant'
+    /* Switch: '<S7>/Switch' incorporates:
+     *  Constant: '<S2>/Constant'
      */
     rtb_Switch2_idx_2 = 0.0;
   }
@@ -232,13 +232,13 @@ void open_differential_no_PID_step(void)
   if (rtb_Switch2_idx_3 > slip_low) {
     rtb_Switch2_idx_3 = slip_low;
   } else if (rtb_Switch2_idx_3 < 0.0) {
-    /* Switch: '<S8>/Switch' incorporates:
-     *  Constant: '<S3>/Constant'
+    /* Switch: '<S7>/Switch' incorporates:
+     *  Constant: '<S2>/Constant'
      */
     rtb_Switch2_idx_3 = 0.0;
   }
 
-  /* End of Switch: '<S8>/Switch2' */
+  /* End of Switch: '<S7>/Switch2' */
 
   /* Outport: '<Root>/Current_FL' */
   simulink_OD_No_PID_outports.Current_FL = positive_slip_FL;
@@ -253,22 +253,22 @@ void open_differential_no_PID_step(void)
   simulink_OD_No_PID_outports.Current_RR = rtb_Switch2_idx_3;
 
   /* Outport: '<Root>/slip_status_RL' incorporates:
-   *  MATLAB Function: '<S2>/MATLAB Function'
+   *  MATLAB Function: '<S3>/MATLAB Function'
    */
   simulink_OD_No_PID_outports.slip_status_RL = slip_status_RR;
 
   /* Outport: '<Root>/slip_status_RR' incorporates:
-   *  MATLAB Function: '<S2>/MATLAB Function'
+   *  MATLAB Function: '<S3>/MATLAB Function'
    */
   simulink_OD_No_PID_outports.slip_status_RR = slip_status_RL;
 
   /* Outport: '<Root>/Torque_RL' incorporates:
-   *  MATLAB Function: '<S2>/MATLAB Function'
+   *  MATLAB Function: '<S3>/MATLAB Function'
    */
   simulink_OD_No_PID_outports.Torque_RL = simulink_OD_No_PID_rtDW.active_torque_cmd;
 
   /* Outport: '<Root>/Torque_RR' incorporates:
-   *  MATLAB Function: '<S2>/MATLAB Function'
+   *  MATLAB Function: '<S3>/MATLAB Function'
    */
   simulink_OD_No_PID_outports.Torque_RR = simulink_OD_No_PID_rtDW.active_torque_cmd;
 

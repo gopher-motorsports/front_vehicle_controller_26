@@ -9,7 +9,7 @@
  *
  * Model version                  : 1.18
  * Simulink Coder version         : 24.2 (R2024b) 21-Jun-2024
- * C/C++ source code generated on : Tue Jun  9 04:11:39 2026
+ * C/C++ source code generated on : Wed Jun 10 02:56:23 2026
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex-M
@@ -55,7 +55,7 @@ typedef struct {
 typedef struct {
   ZCSigState UD_Reset_ZCE;             /* '<S41>/UD' */
   ZCSigState UD_Reset_ZCE_p;           /* '<S104>/UD' */
-} PrevZCX_OD;
+} PrevZCX;
 
 /* External inputs (root inport signals with default storage) */
 typedef struct {
@@ -105,7 +105,7 @@ struct tag_RTM_OD {
 extern DW_OD simulink_OD_rtDW;
 
 /* Zero-crossing (trigger) state */
-extern PrevZCX_OD simulink_OD_rtPrevZCX;
+extern PrevZCX simulink_OD_rtPrevZCX;
 
 /* External inputs (root inport signals with default storage) */
 extern ExtU_OD simulink_OD_inports;

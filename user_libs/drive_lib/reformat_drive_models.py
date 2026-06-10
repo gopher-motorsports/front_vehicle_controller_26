@@ -19,22 +19,36 @@ models = [
         "build_dir": project_root / "open_differential_no_PID_ert_rtw",
         "c_file": "open_differential_no_PID.c",
         "h_file": "open_differential_no_PID.h",
-        "prefix": "simulink_OD_No_PID",
+        "suffix": "OD_No_PID",
     },
     {
         "name": "open_differential",
         "build_dir": project_root / "open_differential_ert_rtw",
         "c_file": "open_differential.c",
         "h_file": "open_differential.h",
-        "prefix": "simulink_OD",
+        "suffix": "OD",
+    },
+    {
+        "name": "torque_vectoring",
+        "build_dir": project_root / "torque_vectoring_ert_rtw",
+        "c_file": "torque_vectoring.c",
+        "h_file": "torque_vectoring.h",
+        "suffix": "TV",
     },
 ]
+
+
+COMMON_SUPPORT_FILES = {
+    "rtwtypes.h",
+    "zero_crossing_types.h",
+    "solver_zc.h",
+}
 
 
 def patch_text_file(file_path: Path, rename_map: dict):
     text = file_path.read_text(encoding="utf-8", errors="ignore")
 
-    # Longer names first so rtPrevZCX / rtM_ do not get partially patched by rt* / rtM
+    # Longer names first so rtPrevZCX / rtM_ do not get partially patched by rtM
     for old_name, new_name in sorted(rename_map.items(), key=lambda x: len(x[0]), reverse=True):
         text = re.sub(rf"\b{re.escape(old_name)}\b", new_name, text)
 
@@ -42,7 +56,7 @@ def patch_text_file(file_path: Path, rename_map: dict):
     print(f"Patched symbols in {file_path}")
 
 
-def copy_and_patch_file(source_file: Path, destination_file: Path, rename_map: dict):
+def copy_and_patch_file(source_file: Path, destination_file: Path, rename_map: dict, should_patch: bool):
     if not source_file.exists():
         print(f"Missing source file: {source_file}")
         return False
@@ -53,7 +67,7 @@ def copy_and_patch_file(source_file: Path, destination_file: Path, rename_map: d
     shutil.copy2(source_file, destination_file)
     print(f"Copied {source_file} -> {destination_file}")
 
-    if destination_file.suffix in [".c", ".h"]:
+    if should_patch and destination_file.suffix in [".c", ".h"]:
         patch_text_file(destination_file, rename_map)
 
     return True
@@ -88,28 +102,60 @@ def find_support_file(filename: str, preferred_build_dir: Path):
     return None
 
 
+def make_rename_map(suffix: str):
+    """
+    Rename both generated globals and generated typedefs.
+
+    Example for suffix OD:
+      rtDW      -> simulink_OD_rtDW
+      rtPrevZCX -> simulink_OD_rtPrevZCX
+      rtM_      -> simulink_OD_rtM_
+      rtM       -> simulink_OD_rtM
+      rtU       -> simulink_OD_inports
+      rtY       -> simulink_OD_outports
+
+      DW        -> DW_OD
+      ExtU      -> ExtU_OD
+      ExtY      -> ExtY_OD
+      RT_MODEL  -> RT_MODEL_OD
+      tag_RTM   -> tag_RTM_OD
+    """
+    return {
+        # Generated Simulink external globals
+        "rtDW": f"simulink_{suffix}_rtDW",
+        "rtPrevZCX": f"simulink_{suffix}_rtPrevZCX",
+
+        # Real-time model globals
+        "rtM_": f"simulink_{suffix}_rtM_",
+        "rtM": f"simulink_{suffix}_rtM",
+
+        # Inports/outports last in the variable name
+        "rtU": f"simulink_{suffix}_inports",
+        "rtY": f"simulink_{suffix}_outports",
+
+        # Generated typedefs that collide between models
+        "DW": f"DW_{suffix}",
+        "ExtU": f"ExtU_{suffix}",
+        "ExtY": f"ExtY_{suffix}",
+        "RT_MODEL": f"RT_MODEL_{suffix}",
+
+        # Generated RT model struct tag that can also collide
+        "tag_RTM": f"tag_RTM_{suffix}",
+    }
+
+
 def process_model(model: dict):
     build_dir = model["build_dir"]
-    prefix = model["prefix"]
     model_name = model["name"]
+    suffix = model["suffix"]
 
     if not build_dir.exists():
         print(f"\nSkipping {model_name}: build folder not found: {build_dir}")
         return
 
-    print(f"\nProcessing model: {model_name}")
+    print(f"\nProcessing model: {model_name} with suffix: {suffix}")
 
-    rename_map = {
-        # Generated Simulink external globals
-        "rtU": f"{prefix}_inports",
-        "rtY": f"{prefix}_outports",
-        "rtDW": f"{prefix}_rtDW",
-        "rtPrevZCX": f"{prefix}_rtPrevZCX",
-
-        # Real-time model globals
-        "rtM_": f"{prefix}_rtM_",
-        "rtM": f"{prefix}_rtM",
-    }
+    rename_map = make_rename_map(suffix)
 
     files_to_copy = {
         # Main generated model files
@@ -137,7 +183,22 @@ def process_model(model: dict):
             continue
 
         destination_file = destination_dir / filename
-        copy_and_patch_file(source_file, destination_file, rename_map)
+
+        # Important:
+        # Do NOT patch common support headers like rtwtypes.h, solver_zc.h,
+        # or zero_crossing_types.h. They are shared support files and should
+        # stay generic.
+        #
+        # Patch only model-specific generated files, because those contain
+        # rtU/rtY/rtDW/rtM/DW/ExtU/ExtY/RT_MODEL collisions.
+        should_patch = filename not in COMMON_SUPPORT_FILES
+
+        copy_and_patch_file(
+            source_file=source_file,
+            destination_file=destination_file,
+            rename_map=rename_map,
+            should_patch=should_patch,
+        )
 
 
 for model in models:
