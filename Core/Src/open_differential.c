@@ -33,20 +33,20 @@
 #endif
 
 /* Block signals and states (default storage) */
-DW simulink_OD_rtDW;
+DW_OD simulink_OD_rtDW;
 
 /* Previous zero-crossings (trigger) states */
-PrevZCX simulink_OD_rtPrevZCX;
+PrevZCX_OD simulink_OD_rtPrevZCX;
 
 /* External inputs (root inport signals with default storage) */
-ExtU simulink_OD_inports;
+ExtU_OD simulink_OD_inports;
 
 /* External outputs (root outports fed by signals with default storage) */
-ExtY simulink_OD_outports;
+ExtY_OD simulink_OD_outports;
 
 /* Real-time model */
-static RT_MODEL simulink_OD_rtM_;
-RT_MODEL *const simulink_OD_rtM = &simulink_OD_rtM_;
+static RT_MODEL_OD simulink_OD_rtM_;
+RT_MODEL_OD *const simulink_OD_rtM = &simulink_OD_rtM_;
 static ZCEventType rt_ZCFcn(ZCDirection zcDir, ZCSigState *prevZc, real_T
   currValue);
 

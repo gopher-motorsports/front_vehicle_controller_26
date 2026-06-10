@@ -81,7 +81,7 @@
 // ============================= Drive Mode PARAMS =============================
 #define SLOW_MODE_BUTTON     	   swButon1_state
 #define DRIVE_MODEL_BUTTON         swButon5_state
-
+#define TOTAL_DRIVE_MODES				4
 #define SLOW_MODE_HOLD_TIME_THRESH		2000
 #define DRIVE_MODEL_HOLD_TIME_THRESH 	1000
 // ============================= Drive Control PARAMS =============================
@@ -117,7 +117,8 @@ typedef enum
 {
 	TORQUE_BY_4 	 = 0,
 	OPEN_DIFF_NO_PID = 1,
-	TORQUE_VECTORING = 2
+	OPEN_DIFF        = 2,
+	TORQUE_VECTORING = 3
 } DRIVE_MODEL_MODES_t;
 
 typedef enum
@@ -165,7 +166,41 @@ typedef struct {
 	float tauMaxLimit_Nm;
 	float ac_currentMaxLimit_Apk;
 	float dc_currentMaxlimit_A;
+} OPEN_DIFF_NO_PID_INPUTS;
+
+typedef struct {
+	float slip_tract_limit_decimal;
+	float car_speed;
+	float yaw_rate;
+	bool integral_reset;
+	float P;
+	float I;
+	FVC_DRIVE_SENSOR_DATA fvc_drive_sensor_data;
+	float tauMaxLimit_Nm;
+	float ac_currentMaxLimit_Apk;
+	float dc_currentMaxlimit_A;
 } OPEN_DIFF_INPUTS;
+
+typedef struct {
+	float slipFL_percent;
+	float slipFR_percent;	
+	float slipRL_percent;
+	float slipRR_percent;
+	bool  is_FL_slipping;
+	bool  is_FR_slipping;
+	bool  is_RL_slipping;
+	bool  is_RR_slipping;
+	float tauFL_Nm;
+	float tauFR_Nm;
+	float tauRL_Nm;
+	float tauRR_Nm;
+	float tauTotalCMD_Nm;
+	float currentCMDFL_Apk;
+	float currentCMDFR_Apk;
+	float currentCMDRL_Apk;
+	float currentCMDRR_Apk;
+	float currentCMDTotal_Apk;
+} OPEN_DIFF_NO_PID_OUTPUTS;
 
 typedef struct {
 	float slipFL_percent;
@@ -189,8 +224,10 @@ typedef struct {
 } OPEN_DIFF_OUTPUTS;
 
 typedef struct{
-    OPEN_DIFF_INPUTS      open_diff_control_inputs;
-    OPEN_DIFF_OUTPUTS     open_diff_control_outputs;
+    OPEN_DIFF_NO_PID_INPUTS  open_diff_no_pid_control_inputs;
+    OPEN_DIFF_NO_PID_OUTPUTS open_diff_no_pid_control_outputs;
+    OPEN_DIFF_INPUTS         open_diff_control_inputs;
+    OPEN_DIFF_OUTPUTS        open_diff_control_outputs;
 	TORQUE_BY_4_INPUTS	  tau_by_4_control_inputs;
 	TORQUE_BY_4_OUTPUTS	  tau_by_4_control_outputs;
     uint32_t 			  drive_control_start_tick;
@@ -220,6 +257,11 @@ void process_inverter();
 void update_drive_inputs();
 void run_simulink_model_and_update_drive_outputs();
 void publish_drive_control_snapshot();
+
+void zero_open_diff_io(DRIVE_CONTROL_SNAPSHOT *snapshot);
+void zero_open_diff_no_pid_io(DRIVE_CONTROL_SNAPSHOT *snapshot);
+void zero_torque_vectoring_io(DRIVE_CONTROL_SNAPSHOT *snapshot);
+void zero_tau_by_4_io(DRIVE_CONTROL_SNAPSHOT *snapshot);
 
 // FVC/Inverter Debug
 void clear_serial_monitor();

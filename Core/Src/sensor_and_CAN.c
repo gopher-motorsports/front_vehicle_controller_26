@@ -98,6 +98,36 @@ void update_drive_control_can_params(){
 		{
 			case OPEN_DIFF_NO_PID:
 				// Open Diff Specific
+				update_and_queue_param_float(&fvcSlip_FL_percent, drive_snap_loc.open_diff_no_pid_control_outputs.slipFL_percent);
+				update_and_queue_param_float(&fvcSlip_FR_percent, drive_snap_loc.open_diff_no_pid_control_outputs.slipFR_percent);
+				update_and_queue_param_float(&fvcSlip_RL_percent, drive_snap_loc.open_diff_no_pid_control_outputs.slipRL_percent);
+				update_and_queue_param_float(&fvcSlip_RR_percent, drive_snap_loc.open_diff_no_pid_control_outputs.slipRR_percent);
+
+				update_and_queue_param_u8(&fvcSlipStatus_FL_state, drive_snap_loc.open_diff_no_pid_control_outputs.is_FL_slipping);
+				update_and_queue_param_u8(&fvcSlipStatus_FR_state, drive_snap_loc.open_diff_no_pid_control_outputs.is_FR_slipping);
+				update_and_queue_param_u8(&fvcSlipStatus_RL_state, drive_snap_loc.open_diff_no_pid_control_outputs.is_RL_slipping);
+				update_and_queue_param_u8(&fvcSlipStatus_RR_state, drive_snap_loc.open_diff_no_pid_control_outputs.is_RR_slipping);
+
+				// Total Commands:
+				update_and_queue_param_float(&fvcTauTotalCMD_Nm,      drive_snap_loc.open_diff_no_pid_control_outputs.tauTotalCMD_Nm);
+				update_and_queue_param_float(&fvcCurrentTotalCMD_Apk, drive_snap_loc.open_diff_no_pid_control_outputs.currentCMDTotal_Apk);
+
+				// Wheel Torques
+				update_torque_can_params(drive_snap_loc.open_diff_no_pid_control_outputs.tauFL_Nm, 
+										 drive_snap_loc.open_diff_no_pid_control_outputs.tauFR_Nm,
+										 drive_snap_loc.open_diff_no_pid_control_outputs.tauRL_Nm, 
+										 drive_snap_loc.open_diff_no_pid_control_outputs.tauRR_Nm);
+				
+				// Inverter Params
+				inv_dc_max_curr = drive_snap_loc.open_diff_no_pid_control_inputs.dc_currentMaxlimit_A   / 4;
+				inv_ac_max_curr = drive_snap_loc.open_diff_no_pid_control_inputs.ac_currentMaxLimit_Apk / 4;
+				update_inverter_can_params(drive_snap_loc.open_diff_no_pid_control_outputs.currentCMDFL_Apk, drive_snap_loc.open_diff_no_pid_control_outputs.currentCMDFR_Apk,
+										   drive_snap_loc.open_diff_no_pid_control_outputs.currentCMDRL_Apk, drive_snap_loc.open_diff_no_pid_control_outputs.currentCMDRR_Apk,
+										   inv_ac_max_curr, inv_ac_max_curr, inv_ac_max_curr, inv_ac_max_curr,
+										   inv_dc_max_curr, inv_dc_max_curr, inv_dc_max_curr, inv_dc_max_curr,
+										   drive_snap_loc.drive_enable_state);
+				break;
+			case OPEN_DIFF:
 				update_and_queue_param_float(&fvcSlip_FL_percent, drive_snap_loc.open_diff_control_outputs.slipFL_percent);
 				update_and_queue_param_float(&fvcSlip_FR_percent, drive_snap_loc.open_diff_control_outputs.slipFR_percent);
 				update_and_queue_param_float(&fvcSlip_RL_percent, drive_snap_loc.open_diff_control_outputs.slipRL_percent);
@@ -127,9 +157,8 @@ void update_drive_control_can_params(){
 										   inv_dc_max_curr, inv_dc_max_curr, inv_dc_max_curr, inv_dc_max_curr,
 										   drive_snap_loc.drive_enable_state);
 				break;
-
 			case TORQUE_VECTORING:
-
+				
 				break;
 
 			case TORQUE_BY_4:

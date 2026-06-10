@@ -39,7 +39,7 @@
 #endif
 
 /* Forward declaration for rtModel */
-typedef struct tag_RTM RT_MODEL;
+typedef struct tag_RTM_OD RT_MODEL_OD;
 
 /* Block signals and states (default storage) for system '<Root>' */
 typedef struct {
@@ -49,13 +49,13 @@ typedef struct {
   real_T UD_DSTATE_b;                  /* '<S104>/UD' */
   int8_T Integrator_PrevResetState;    /* '<S48>/Integrator' */
   int8_T Integrator_PrevResetState_a;  /* '<S111>/Integrator' */
-} DW;
+} DW_OD;
 
 /* Zero-crossing (trigger) state */
 typedef struct {
   ZCSigState UD_Reset_ZCE;             /* '<S41>/UD' */
   ZCSigState UD_Reset_ZCE_p;           /* '<S104>/UD' */
-} PrevZCX;
+} PrevZCX_OD;
 
 /* External inputs (root inport signals with default storage) */
 typedef struct {
@@ -72,7 +72,7 @@ typedef struct {
   real_T Integral_Reset;               /* '<Root>/Integral_Reset' */
   real_T P_h;                          /* '<Root>/P' */
   real_T I;                            /* '<Root>/I' */
-} ExtU;
+} ExtU_OD;
 
 /* External outputs (root outports fed by signals with default storage) */
 typedef struct {
@@ -94,31 +94,31 @@ typedef struct {
   real_T Current_RL;                   /* '<Root>/Current_RL' */
   real_T Current_RR;                   /* '<Root>/Current_RR' */
   real_T Total_Current_Cmd;            /* '<Root>/Total_Current_Cmd' */
-} ExtY;
+} ExtY_OD;
 
 /* Real-time Model Data Structure */
-struct tag_RTM {
+struct tag_RTM_OD {
   const char_T * volatile errorStatus;
 };
 
 /* Block signals and states (default storage) */
-extern DW simulink_OD_rtDW;
+extern DW_OD simulink_OD_rtDW;
 
 /* Zero-crossing (trigger) state */
-extern PrevZCX simulink_OD_rtPrevZCX;
+extern PrevZCX_OD simulink_OD_rtPrevZCX;
 
 /* External inputs (root inport signals with default storage) */
-extern ExtU simulink_OD_inports;
+extern ExtU_OD simulink_OD_inports;
 
 /* External outputs (root outports fed by signals with default storage) */
-extern ExtY simulink_OD_outports;
+extern ExtY_OD simulink_OD_outports;
 
 /* Model entry point functions */
 extern void open_differential_initialize(void);
 extern void open_differential_step(void);
 
 /* Real-time Model object */
-extern RT_MODEL *const simulink_OD_rtM;
+extern RT_MODEL_OD *const simulink_OD_rtM;
 
 /*-
  * These blocks were eliminated from the model due to optimizations:

@@ -216,7 +216,7 @@ void determine_drive_model(){
 	if(mode_change_pending &&
 		(DRIVE_MODEL_BUTTON.data == 1) &&
 		(HAL_GetTick() - last_button_press_time > DRIVE_MODEL_HOLD_TIME_THRESH)){
-		drive_model = (drive_model + 1) % 3;
+		drive_model = (drive_model + 1) % TOTAL_DRIVE_MODES;
 		mode_change_pending = FALSE;
 	}
 
