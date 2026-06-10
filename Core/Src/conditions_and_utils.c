@@ -204,6 +204,12 @@ void determine_drive_model(){
 	static uint32_t last_button_press_time = 0;
 	static boolean mode_change_pending = 0;
 
+	boolean GNSS_fixed = (vnavINS_status.data & (1 << 2)) > 0;
+	if (!GNSS_fixed){
+		drive_model = TORQUE_BY_4;
+		return;
+	}
+
 	if(DRIVE_MODEL_BUTTON.data == 1 && last_button_press == 0){
 		mode_change_pending = TRUE;
 		last_button_press_time = HAL_GetTick();
