@@ -200,25 +200,83 @@ void determine_drive_speed_mode(){
 }
 
 void determine_drive_model(){
-	static uint8_t last_button_press = 0;
-	static uint32_t last_button_press_time = 0;
-	static boolean mode_change_pending = 0;
+    static uint8_t last_button_press = 0;
+    static uint32_t last_button_press_time = 0;
+    static boolean mode_change_pending = FALSE;
 
-	if(DRIVE_MODEL_BUTTON.data == 1 && last_button_press == 0){
-		mode_change_pending = TRUE;
-		last_button_press_time = HAL_GetTick();
-	}
+    static uint8_t selectable_mode_index = 0;
+    static boolean last_GNSS_fixed = FALSE;
 
-	if(DRIVE_MODEL_BUTTON.data == 0){
-		mode_change_pending = FALSE;
-	}
+    static const DRIVE_MODEL_MODES_t gnss_fixed_modes[] = {
+        TORQUE_BY_4,
+        TORQUE_BY_2_FWD,
+        TORQUE_BY_2_RWD,
+        OPEN_DIFF_NO_PID,
+        OPEN_DIFF,
+        TORQUE_VECTORING
+    };
 
-	if(mode_change_pending &&
-		(DRIVE_MODEL_BUTTON.data == 1) &&
-		(HAL_GetTick() - last_button_press_time > DRIVE_MODEL_HOLD_TIME_THRESH)){
-		drive_model = (drive_model + 1) % TOTAL_DRIVE_MODES;
-		mode_change_pending = FALSE;
-	}
+    static const DRIVE_MODEL_MODES_t gnss_not_fixed_modes[] = {
+        TORQUE_BY_4,
+        TORQUE_BY_2_FWD,
+        TORQUE_BY_2_RWD
+    };
 
-	last_button_press = DRIVE_MODEL_BUTTON.data;
+    boolean GNSS_fixed = (vnavINS_status.data & (1 << 2)) > 0;
+
+    const DRIVE_MODEL_MODES_t *selectable_drive_modes;
+    uint8_t num_selectable_drive_modes;
+
+    if (GNSS_fixed) {
+        selectable_drive_modes = gnss_fixed_modes;
+        num_selectable_drive_modes = sizeof(gnss_fixed_modes) / sizeof(gnss_fixed_modes[0]);
+    } else {
+        selectable_drive_modes = gnss_not_fixed_modes;
+        num_selectable_drive_modes = sizeof(gnss_not_fixed_modes) / sizeof(gnss_not_fixed_modes[0]);
+    }
+
+    // If GNSS state changed, make sure current drive_model is valid in the new allowed list
+    if (GNSS_fixed != last_GNSS_fixed) {
+        boolean current_mode_valid = FALSE;
+
+        for (uint8_t i = 0; i < num_selectable_drive_modes; i++) {
+            if (drive_model == selectable_drive_modes[i]) {
+                selectable_mode_index = i;
+                current_mode_valid = TRUE;
+                break;
+            }
+        }
+
+        if (!current_mode_valid) {
+            drive_model = TORQUE_BY_4;
+            selectable_mode_index = 0;
+        }
+
+        mode_change_pending = FALSE;
+        last_GNSS_fixed = GNSS_fixed;
+    }
+
+	// button hold logic
+    if (DRIVE_MODEL_BUTTON.data == 1 && last_button_press == 0) {
+        mode_change_pending = TRUE;
+        last_button_press_time = HAL_GetTick();
+    }
+
+    if (DRIVE_MODEL_BUTTON.data == 0) {
+        mode_change_pending = FALSE;
+    }
+
+    if (mode_change_pending &&
+        (DRIVE_MODEL_BUTTON.data == 1) &&
+        (HAL_GetTick() - last_button_press_time > DRIVE_MODEL_HOLD_TIME_THRESH)) {
+
+        selectable_mode_index =
+            (selectable_mode_index + 1) % num_selectable_drive_modes;
+
+        drive_model = selectable_drive_modes[selectable_mode_index];
+
+        mode_change_pending = FALSE;
+    }
+
+    last_button_press = DRIVE_MODEL_BUTTON.data;
 }
