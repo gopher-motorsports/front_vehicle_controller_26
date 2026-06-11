@@ -33,13 +33,15 @@
 // Motor Properties
 #define Kt						0.257f
 #define TOTAL_INVERTERS         4       // 2 Dual Package F-Sic Inverters = 4 total inverters
+#define TOTAL_INVERTERS_2WD     2		// 1 Dual package F-Sic Inverter  = 2 total inverters in 2 wheel drive
 #define MOTOR_POLE_PAIRS   		4 	    // Amount of Pole Pairs of the MTS Motor, 4 pole pairs = 8 poles
 #define DRIVE_TRAIN_GEAR_RATIO	12.8f	// Drive Train Gear Ratio
 #define WHEEL_RADIUS			0.2032f	// Wheel Raidus = 8 inches --> 0.2032 in
 
 // Motor Limits
-#define MOTOR_MAX_TORQUE_Nm	  	30.84 // 120 Apk * .257 = 30.84Nm
-#define TOTAL_TORQUE_LIMIT_Nm	MOTOR_MAX_TORQUE_Nm * 4
+#define MOTOR_MAX_TORQUE_Nm	  		30.84 // 120 Apk * .257 = 30.84Nm
+#define TOTAL_TORQUE_LIMIT_Nm		MOTOR_MAX_TORQUE_Nm * 4
+#define TOTAL_TORQUE_LIMIT_2WD_Nm   MOTOR_MAX_TORQUE_Nm * 2
 // ============================= CAR PARAMS =============================
 //Thresholds for "fvc.software_faults.c" 
 #define INPUT_TRIP_DELAY_ms   85     // The amount of time it takes an input fault to take effect, margin from 100
@@ -115,10 +117,12 @@ typedef enum
 
 typedef enum
 {
-	TORQUE_BY_4 	 = 0,
-	OPEN_DIFF_NO_PID = 1,
-	OPEN_DIFF        = 2,
-	TORQUE_VECTORING = 3
+	TORQUE_BY_4 	 	= 0,
+	OPEN_DIFF_NO_PID 	= 1,
+	OPEN_DIFF        	= 2,
+	TORQUE_VECTORING 	= 3,
+	TORQUE_BY_2_FWD     = 4,
+	TORQUE_BY_2_RWD     = 5
 } DRIVE_MODEL_MODES_t;
 
 typedef enum
@@ -223,13 +227,25 @@ typedef struct {
 	float currentCMDTotal_Apk;
 } OPEN_DIFF_OUTPUTS;
 
+typedef union {
+    OPEN_DIFF_NO_PID_INPUTS OD_no_pid;
+    OPEN_DIFF_INPUTS        OD;
+	TORQUE_BY_4_INPUTS      T_by_4;
+    TORQUE_BY_4_INPUTS		T_by_2_fwd;
+    TORQUE_BY_4_INPUTS	    T_by_2_rwd;
+} DRIVE_MODEL_INPUTS;
+
+typedef union {
+    OPEN_DIFF_NO_PID_OUTPUTS OD_no_pid;
+    OPEN_DIFF_OUTPUTS        OD;
+    TORQUE_BY_4_OUTPUTS      T_by_4;
+	TORQUE_BY_4_OUTPUTS		 T_by_2_fwd;
+	TORQUE_BY_4_OUTPUTS		 T_by_2_rwd;
+} DRIVE_MODEL_OUTPUTS;
+
 typedef struct{
-    OPEN_DIFF_NO_PID_INPUTS  open_diff_no_pid_control_inputs;
-    OPEN_DIFF_NO_PID_OUTPUTS open_diff_no_pid_control_outputs;
-    OPEN_DIFF_INPUTS         open_diff_control_inputs;
-    OPEN_DIFF_OUTPUTS        open_diff_control_outputs;
-	TORQUE_BY_4_INPUTS	  tau_by_4_control_inputs;
-	TORQUE_BY_4_OUTPUTS	  tau_by_4_control_outputs;
+	DRIVE_MODEL_INPUTS    inputs;
+    DRIVE_MODEL_OUTPUTS   outputs;
     uint32_t 			  drive_control_start_tick;
 	uint32_t 			  drive_control_end_tick;
 	bool 				  drive_enable_state;
@@ -257,11 +273,6 @@ void process_inverter();
 void update_drive_inputs();
 void run_simulink_model_and_update_drive_outputs();
 void publish_drive_control_snapshot();
-
-void zero_open_diff_io(DRIVE_CONTROL_SNAPSHOT *snapshot);
-void zero_open_diff_no_pid_io(DRIVE_CONTROL_SNAPSHOT *snapshot);
-void zero_torque_vectoring_io(DRIVE_CONTROL_SNAPSHOT *snapshot);
-void zero_tau_by_4_io(DRIVE_CONTROL_SNAPSHOT *snapshot);
 
 // FVC/Inverter Debug
 void clear_serial_monitor();
