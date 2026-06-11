@@ -257,7 +257,7 @@ void run_simulink_model_and_update_drive_outputs(){
 			// Torque
 			tau_by_4_outputs.tauTotalCMD_Nm = (tau_by_4_inputs.throttle_percent / 100.0f) * (tau_by_4_inputs.tauMaxLimit_Nm);
 
-			// if DC current limit is pulled down then 0 torque cmd also
+			// if AC current limit is pulled down then 0 torque cmd also
 			if(tau_by_4_inputs.ac_currentMaxLimit_Apk <= 0){
 				tau_by_4_outputs.tauTotalCMD_Nm = 0;
 			}
