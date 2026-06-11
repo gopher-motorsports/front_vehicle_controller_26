@@ -263,8 +263,8 @@ void update_drive_inputs(){
 	switch (drive_model)
 	{
 		case OPEN_DIFF_NO_PID:
-			open_diff_no_pid_inputs.car_speed      = vnavVelBodyX.data;
-			open_diff_no_pid_inputs.yaw_rate		= vnavGyroBodyZ.data;
+			open_diff_no_pid_inputs.car_speed 	= vnavVelBodyX.data;
+			open_diff_no_pid_inputs.yaw_rate  	= vnavGyroBodyZ.data;
 
 			// Wheel Slip Traction Threshold
 			open_diff_no_pid_inputs.slip_tract_limit_decimal = swDial_b_ul.data;
@@ -279,8 +279,8 @@ void update_drive_inputs(){
 			break;
 			
 		case OPEN_DIFF:
-			open_diff_inputs.car_speed      = vnavVelBodyX.data;
-			open_diff_inputs.yaw_rate		= vnavGyroBodyZ.data;
+			open_diff_inputs.car_speed 		= vnavVelBodyX.data;
+			open_diff_inputs.yaw_rate  		= vnavGyroBodyZ.data;
 
 			// PID Terms:
 			open_diff_inputs.P = swDial_a_ul.data;
@@ -321,81 +321,81 @@ void run_simulink_model_and_update_drive_outputs(){
 	switch (drive_model)
 	{
 		case OPEN_DIFF_NO_PID:
-			simulink_OD_No_PID_inports.Wheel_Speed_FL = open_diff_no_pid_inputs.fvc_drive_sensor_data.wheel_speed_FL;
-			simulink_OD_No_PID_inports.Wheel_Speed_FR = open_diff_no_pid_inputs.fvc_drive_sensor_data.wheel_speed_FR;
-			simulink_OD_No_PID_inports.Wheel_Speed_RL = open_diff_no_pid_inputs.fvc_drive_sensor_data.wheel_speed_RL;
-			simulink_OD_No_PID_inports.Wheel_Speed_RR = open_diff_no_pid_inputs.fvc_drive_sensor_data.wheel_speed_RR;
-			simulink_OD_No_PID_inports.Car_SpeedVx = open_diff_no_pid_inputs.car_speed;
+			simulink_OD_No_PID_inports.Wheel_Speed_FL 	 = open_diff_no_pid_inputs.fvc_drive_sensor_data.wheel_speed_FL;
+			simulink_OD_No_PID_inports.Wheel_Speed_FR 	 = open_diff_no_pid_inputs.fvc_drive_sensor_data.wheel_speed_FR;
+			simulink_OD_No_PID_inports.Wheel_Speed_RL 	 = open_diff_no_pid_inputs.fvc_drive_sensor_data.wheel_speed_RL;
+			simulink_OD_No_PID_inports.Wheel_Speed_RR 	 = open_diff_no_pid_inputs.fvc_drive_sensor_data.wheel_speed_RR;
+			simulink_OD_No_PID_inports.Car_SpeedVx 	  	 = open_diff_no_pid_inputs.car_speed;
 
-			simulink_OD_No_PID_inports.Yaw_Ratedegs = open_diff_no_pid_inputs.yaw_rate;
-			simulink_OD_No_PID_inports.Maximum_Torque = open_diff_no_pid_inputs.tauMaxLimit_Nm;
+			simulink_OD_No_PID_inports.Yaw_Ratedegs 	 = open_diff_no_pid_inputs.yaw_rate;
+			simulink_OD_No_PID_inports.Maximum_Torque 	 = open_diff_no_pid_inputs.tauMaxLimit_Nm;
 			simulink_OD_No_PID_inports.Slip_Traction_Lim = open_diff_no_pid_inputs.slip_tract_limit_decimal;
-			simulink_OD_No_PID_inports.Throttle = open_diff_no_pid_inputs.fvc_drive_sensor_data.throttle_percent;
-			simulink_OD_No_PID_inports.Current_Limit = open_diff_no_pid_inputs.ac_currentMaxLimit_Apk;
+			simulink_OD_No_PID_inports.Throttle 		 = open_diff_no_pid_inputs.fvc_drive_sensor_data.throttle_percent;
+			simulink_OD_No_PID_inports.Current_Limit 	 = open_diff_no_pid_inputs.ac_currentMaxLimit_Apk;
 
 			open_differential_no_PID_step();
 
-			open_diff_no_pid_outputs.slipFL_percent = simulink_OD_No_PID_outports.Slip_FL;
-			open_diff_no_pid_outputs.slipFR_percent = simulink_OD_No_PID_outports.Slip_FR;
-			open_diff_no_pid_outputs.slipRL_percent = simulink_OD_No_PID_outports.Slip_RL;
-			open_diff_no_pid_outputs.slipRR_percent = simulink_OD_No_PID_outports.Slip_RR;
-			open_diff_no_pid_outputs.is_FL_slipping = simulink_OD_No_PID_outports.slip_status_FL;
-			open_diff_no_pid_outputs.is_FR_slipping = simulink_OD_No_PID_outports.slip_status_FR;
-			open_diff_no_pid_outputs.is_RL_slipping = simulink_OD_No_PID_outports.slip_status_RL;
-			open_diff_no_pid_outputs.is_RR_slipping = simulink_OD_No_PID_outports.slip_status_RR;
+			open_diff_no_pid_outputs.slipFL_percent 	 = simulink_OD_No_PID_outports.Slip_FL;
+			open_diff_no_pid_outputs.slipFR_percent 	 = simulink_OD_No_PID_outports.Slip_FR;
+			open_diff_no_pid_outputs.slipRL_percent 	 = simulink_OD_No_PID_outports.Slip_RL;
+			open_diff_no_pid_outputs.slipRR_percent 	 = simulink_OD_No_PID_outports.Slip_RR;
+			open_diff_no_pid_outputs.is_FL_slipping 	 = simulink_OD_No_PID_outports.slip_status_FL;
+			open_diff_no_pid_outputs.is_FR_slipping 	 = simulink_OD_No_PID_outports.slip_status_FR;
+			open_diff_no_pid_outputs.is_RL_slipping 	 = simulink_OD_No_PID_outports.slip_status_RL;
+			open_diff_no_pid_outputs.is_RR_slipping 	 = simulink_OD_No_PID_outports.slip_status_RR;
 
-			open_diff_no_pid_outputs.tauFL_Nm = simulink_OD_No_PID_outports.Torque_FL;
-			open_diff_no_pid_outputs.tauFR_Nm = simulink_OD_No_PID_outports.Torque_FR;
-			open_diff_no_pid_outputs.tauRL_Nm = simulink_OD_No_PID_outports.Torque_RL;
-			open_diff_no_pid_outputs.tauRR_Nm = simulink_OD_No_PID_outports.Torque_RR;
-			open_diff_no_pid_outputs.tauTotalCMD_Nm = simulink_OD_No_PID_outports.Total_Torque_Cmd;
+			open_diff_no_pid_outputs.tauFL_Nm 	   		 = simulink_OD_No_PID_outports.Torque_FL;
+			open_diff_no_pid_outputs.tauFR_Nm 	   		 = simulink_OD_No_PID_outports.Torque_FR;
+			open_diff_no_pid_outputs.tauRL_Nm 	   		 = simulink_OD_No_PID_outports.Torque_RL;
+			open_diff_no_pid_outputs.tauRR_Nm 	   		 = simulink_OD_No_PID_outports.Torque_RR;
+			open_diff_no_pid_outputs.tauTotalCMD_Nm 	 = simulink_OD_No_PID_outports.Total_Torque_Cmd;
 
-			open_diff_no_pid_outputs.currentCMDFL_Apk = simulink_OD_No_PID_outports.Current_FL;
-			open_diff_no_pid_outputs.currentCMDFR_Apk = simulink_OD_No_PID_outports.Current_FR;
-			open_diff_no_pid_outputs.currentCMDRL_Apk = simulink_OD_No_PID_outports.Current_RL;
-			open_diff_no_pid_outputs.currentCMDRR_Apk = simulink_OD_No_PID_outports.Current_RR;
+			open_diff_no_pid_outputs.currentCMDFL_Apk 	 = simulink_OD_No_PID_outports.Current_FL;
+			open_diff_no_pid_outputs.currentCMDFR_Apk 	 = simulink_OD_No_PID_outports.Current_FR;
+			open_diff_no_pid_outputs.currentCMDRL_Apk 	 = simulink_OD_No_PID_outports.Current_RL;
+			open_diff_no_pid_outputs.currentCMDRR_Apk 	 = simulink_OD_No_PID_outports.Current_RR;
 			open_diff_no_pid_outputs.currentCMDTotal_Apk = simulink_OD_No_PID_outports.Total_Current_Cmd;
 			break;
 
 		case OPEN_DIFF:
-			simulink_OD_inports.Wheel_Speed_FL = open_diff_inputs.fvc_drive_sensor_data.wheel_speed_FL;
-			simulink_OD_inports.Wheel_Speed_FR = open_diff_inputs.fvc_drive_sensor_data.wheel_speed_FR;
-			simulink_OD_inports.Wheel_Speed_RL = open_diff_inputs.fvc_drive_sensor_data.wheel_speed_RL;
-			simulink_OD_inports.Wheel_Speed_RR = open_diff_inputs.fvc_drive_sensor_data.wheel_speed_RR;
-			simulink_OD_inports.Car_SpeedVx = open_diff_inputs.car_speed;
+			simulink_OD_inports.Wheel_Speed_FL 	  		 = open_diff_inputs.fvc_drive_sensor_data.wheel_speed_FL;
+			simulink_OD_inports.Wheel_Speed_FR 	  		 = open_diff_inputs.fvc_drive_sensor_data.wheel_speed_FR;
+			simulink_OD_inports.Wheel_Speed_RL 	  		 = open_diff_inputs.fvc_drive_sensor_data.wheel_speed_RL;
+			simulink_OD_inports.Wheel_Speed_RR 	  		 = open_diff_inputs.fvc_drive_sensor_data.wheel_speed_RR;
+			simulink_OD_inports.Car_SpeedVx    	  		 = open_diff_inputs.car_speed;
 
-			simulink_OD_inports.Maximum_Torque = open_diff_inputs.tauMaxLimit_Nm;
-			simulink_OD_inports.Slip_Traction_Lim = open_diff_inputs.slip_tract_limit_decimal;
-			simulink_OD_inports.Throttle = open_diff_inputs.fvc_drive_sensor_data.throttle_percent;
-			simulink_OD_inports.Current_Limit = open_diff_inputs.ac_currentMaxLimit_Apk;
-			simulink_OD_inports.Yaw_Ratedegs = open_diff_inputs.yaw_rate;
+			simulink_OD_inports.Maximum_Torque    		 = open_diff_inputs.tauMaxLimit_Nm;
+			simulink_OD_inports.Slip_Traction_Lim 		 = open_diff_inputs.slip_tract_limit_decimal;
+			simulink_OD_inports.Throttle 		  		 = open_diff_inputs.fvc_drive_sensor_data.throttle_percent;
+			simulink_OD_inports.Current_Limit 	  		 = open_diff_inputs.ac_currentMaxLimit_Apk;
+			simulink_OD_inports.Yaw_Ratedegs 	  		 = open_diff_inputs.yaw_rate;
 
-			simulink_OD_inports.Integral_Reset = open_diff_inputs.integral_reset;
-			simulink_OD_inports.P_h = open_diff_inputs.P;
-			simulink_OD_inports.I = open_diff_inputs.I;
+			simulink_OD_inports.Integral_Reset 	 		 = open_diff_inputs.integral_reset;
+			simulink_OD_inports.P_h 			 		 = open_diff_inputs.P;
+			simulink_OD_inports.I 				 		 = open_diff_inputs.I;
 
 			open_differential_step();
 
-			open_diff_outputs.slipFL_percent = simulink_OD_outports.Slip_FL;
-			open_diff_outputs.slipFR_percent = simulink_OD_outports.Slip_FR;
-			open_diff_outputs.slipRL_percent = simulink_OD_outports.Slip_RL;
-			open_diff_outputs.slipRR_percent = simulink_OD_outports.Slip_RR;
-			open_diff_outputs.is_FL_slipping = simulink_OD_outports.slip_status_FL;
-			open_diff_outputs.is_FR_slipping = simulink_OD_outports.slip_status_FR;
-			open_diff_outputs.is_RL_slipping = simulink_OD_outports.slip_status_RL;
-			open_diff_outputs.is_RR_slipping = simulink_OD_outports.slip_status_RR;
+			open_diff_outputs.slipFL_percent 	  		 = simulink_OD_outports.Slip_FL;
+			open_diff_outputs.slipFR_percent 	  		 = simulink_OD_outports.Slip_FR;
+			open_diff_outputs.slipRL_percent 	  		 = simulink_OD_outports.Slip_RL;
+			open_diff_outputs.slipRR_percent 	  		 = simulink_OD_outports.Slip_RR;
+			open_diff_outputs.is_FL_slipping 	  		 = simulink_OD_outports.slip_status_FL;
+			open_diff_outputs.is_FR_slipping 	  		 = simulink_OD_outports.slip_status_FR;
+			open_diff_outputs.is_RL_slipping 	  		 = simulink_OD_outports.slip_status_RL;
+			open_diff_outputs.is_RR_slipping 	  		 = simulink_OD_outports.slip_status_RR;
 
-			open_diff_outputs.tauFL_Nm = simulink_OD_outports.Torque_FL;
-			open_diff_outputs.tauFR_Nm = simulink_OD_outports.Torque_FR;
-			open_diff_outputs.tauRL_Nm = simulink_OD_outports.Torque_RL;
-			open_diff_outputs.tauRR_Nm = simulink_OD_outports.Torque_RR;
-			open_diff_outputs.tauTotalCMD_Nm = simulink_OD_outports.Total_Torque_Cmd;
+			open_diff_outputs.tauFL_Nm 		 	  		 = simulink_OD_outports.Torque_FL;
+			open_diff_outputs.tauFR_Nm 		 	  		 = simulink_OD_outports.Torque_FR;
+			open_diff_outputs.tauRL_Nm 		 	  		 = simulink_OD_outports.Torque_RL;
+			open_diff_outputs.tauRR_Nm 		 	  		 = simulink_OD_outports.Torque_RR;
+			open_diff_outputs.tauTotalCMD_Nm 	  		 = simulink_OD_outports.Total_Torque_Cmd;
 
-			open_diff_outputs.currentCMDFL_Apk = simulink_OD_outports.Current_FL;
-			open_diff_outputs.currentCMDFR_Apk = simulink_OD_outports.Current_FR;
-			open_diff_outputs.currentCMDRL_Apk = simulink_OD_outports.Current_RL;
-			open_diff_outputs.currentCMDRR_Apk = simulink_OD_outports.Current_RR;
-			open_diff_outputs.currentCMDTotal_Apk = simulink_OD_outports.Total_Current_Cmd;
+			open_diff_outputs.currentCMDFL_Apk 	  		 = simulink_OD_outports.Current_FL;
+			open_diff_outputs.currentCMDFR_Apk 	  		 = simulink_OD_outports.Current_FR;
+			open_diff_outputs.currentCMDRL_Apk 	  		 = simulink_OD_outports.Current_RL;
+			open_diff_outputs.currentCMDRR_Apk 	  		 = simulink_OD_outports.Current_RR;
+			open_diff_outputs.currentCMDTotal_Apk 		 = simulink_OD_outports.Total_Current_Cmd;
 			break;
 
 		case TORQUE_VECTORING:
@@ -452,8 +452,8 @@ void publish_drive_control_snapshot(){
 			zero_open_diff_no_pid_io(&drive_snapshot_local);
 			zero_torque_vectoring_io(&drive_snapshot_local);
 
-			drive_snapshot_local.open_diff_control_inputs  = open_diff_inputs;
-			drive_snapshot_local.open_diff_control_outputs = open_diff_outputs;
+			drive_snapshot_local.open_diff_control_inputs  		  = open_diff_inputs;
+			drive_snapshot_local.open_diff_control_outputs 		  = open_diff_outputs;
 			break;
 
 		case TORQUE_VECTORING:
@@ -468,8 +468,8 @@ void publish_drive_control_snapshot(){
 			zero_open_diff_io(&drive_snapshot_local);
 			zero_torque_vectoring_io(&drive_snapshot_local);
 
-			drive_snapshot_local.tau_by_4_control_inputs  = tau_by_4_inputs;
-			drive_snapshot_local.tau_by_4_control_outputs = tau_by_4_outputs;
+			drive_snapshot_local.tau_by_4_control_inputs 		  = tau_by_4_inputs;
+			drive_snapshot_local.tau_by_4_control_outputs		  = tau_by_4_outputs;
 			break;
 	}	
 
