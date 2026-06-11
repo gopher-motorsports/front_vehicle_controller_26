@@ -4,7 +4,7 @@
             "name": "STM32",
             "compileCommands": "${workspaceFolder}/build/debug/compile_commands.json",
             "configurationProvider": "ms-vscode.cmake-tools",
-            "intelliSenseMode": "${default}",
+            "intelliSenseMode": "gcc-arm",
             "includePath": [
                 "${default}",
                 "${workspaceFolder}/Core/Inc",

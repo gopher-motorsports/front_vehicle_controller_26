@@ -36,6 +36,18 @@
         },
         {
             "type": "shell",
+            "label": "Reformat Drive Models",
+            "command": "python",
+            "args": [
+                "reformat_drive_models.py"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/user_libs/drive_lib"
+            },
+            "problemMatcher": []
+        },
+        {
+            "type": "shell",
             "label": "Build Gopher Sense",
             "command": "python",
             "args": [
