@@ -30,6 +30,46 @@ bool all_inverter_enable; // enable for all 4 inverters in this case
 DRIVE_SPEED_MODE_t drive_speed_mode = FULL_POWER;
 DRIVE_MODEL_MODES_t drive_model     = TORQUE_BY_4;
 
+TORQUE_BY_4_INPUTS tau_by_2_fwd_inputs = {
+	.throttle_percent = 0.0,
+	.tauMaxLimit_Nm = TOTAL_TORQUE_LIMIT_2WD_Nm,
+	.ac_currentMaxLimit_Apk = 0.0,
+	.dc_currentMaxlimit_A = 0.0
+};
+
+TORQUE_BY_4_OUTPUTS tau_by_2_fwd_outputs = {
+	.tauFL_Nm = 0.0,
+	.tauFR_Nm = 0.0,
+	.tauRL_Nm = 0.0,
+	.tauRR_Nm = 0.0,
+	.tauTotalCMD_Nm = 0.0,
+	.currentCMDFL_Apk = 0.0,
+	.currentCMDFR_Apk = 0.0,
+	.currentCMDRL_Apk = 0.0,
+	.currentCMDRR_Apk = 0.0,
+	.currentCMDTotal_Apk = 0.0
+};
+
+TORQUE_BY_4_INPUTS tau_by_2_rwd_inputs = {
+	.throttle_percent = 0.0,
+	.tauMaxLimit_Nm = TOTAL_TORQUE_LIMIT_2WD_Nm,
+	.ac_currentMaxLimit_Apk = 0.0,
+	.dc_currentMaxlimit_A = 0.0
+};
+
+TORQUE_BY_4_OUTPUTS tau_by_2_rwd_outputs = {
+	.tauFL_Nm = 0.0,
+	.tauFR_Nm = 0.0,
+	.tauRL_Nm = 0.0,
+	.tauRR_Nm = 0.0,
+	.tauTotalCMD_Nm = 0.0,
+	.currentCMDFL_Apk = 0.0,
+	.currentCMDFR_Apk = 0.0,
+	.currentCMDRL_Apk = 0.0,
+	.currentCMDRR_Apk = 0.0,
+	.currentCMDTotal_Apk = 0.0
+};
+
 TORQUE_BY_4_INPUTS tau_by_4_inputs = {
 	.throttle_percent = 0.0,
 	.tauMaxLimit_Nm = TOTAL_TORQUE_LIMIT_Nm,
@@ -53,6 +93,7 @@ TORQUE_BY_4_OUTPUTS tau_by_4_outputs = {
 OPEN_DIFF_INPUTS open_diff_inputs = {
 	.slip_tract_limit_decimal = TRACTION_LIMIT_decimal,
 	.car_speed      = 0.0,
+	.yaw_rate 		= 0.0,
 	.integral_reset  = 0,
 	.P = 0.0,
 	.I = 0.0,
@@ -148,6 +189,8 @@ void init_fvc(CAN_HandleTypeDef* BUS_1, CAN_HandleTypeDef* BUS_2, CAN_HandleType
 
 	init_git_LEDs();
 	init_efuses();
+
+	// Drive Model Inits
 	open_differential_initialize();
 }
 
@@ -301,6 +344,24 @@ void update_drive_inputs(){
 
 		case TORQUE_VECTORING:
 			break;
+		
+		case TORQUE_BY_2_FWD:
+			osMutexWait(fvcDriveSensorsMutexHandle, osWaitForever);
+			tau_by_2_fwd_inputs.throttle_percent = fvc_drive_sensor_data_global.throttle_percent;
+			osMutexRelease(fvcDriveSensorsMutexHandle);
+
+			determine_drive_power_limits(&tau_by_2_fwd_inputs.ac_currentMaxLimit_Apk,
+										 &tau_by_2_fwd_inputs.dc_currentMaxlimit_A, &all_inverter_enable);	
+			break;
+
+		case TORQUE_BY_2_RWD:
+			osMutexWait(fvcDriveSensorsMutexHandle, osWaitForever);
+			tau_by_2_rwd_inputs.throttle_percent = fvc_drive_sensor_data_global.throttle_percent;
+			osMutexRelease(fvcDriveSensorsMutexHandle);
+
+			determine_drive_power_limits(&tau_by_2_rwd_inputs.ac_currentMaxLimit_Apk,
+										 &tau_by_2_rwd_inputs.dc_currentMaxlimit_A, &all_inverter_enable);
+			break;
 
 		case TORQUE_BY_4:
 		default:
@@ -311,6 +372,8 @@ void update_drive_inputs(){
 			determine_drive_power_limits(&tau_by_4_inputs.ac_currentMaxLimit_Apk,
 										 &tau_by_4_inputs.dc_currentMaxlimit_A, &all_inverter_enable);
 			break;
+		
+		
 	}
 	
 	// Drive Tick
@@ -318,6 +381,9 @@ void update_drive_inputs(){
 }
 
 void run_simulink_model_and_update_drive_outputs(){
+	float per_inverter_tau;
+	float per_inverter_current;
+
 	switch (drive_model)
 	{
 		case OPEN_DIFF_NO_PID:
@@ -400,7 +466,56 @@ void run_simulink_model_and_update_drive_outputs(){
 
 		case TORQUE_VECTORING:
 			break;
+		case TORQUE_BY_2_FWD:
+			// Torque
+			tau_by_2_fwd_outputs.tauTotalCMD_Nm = (tau_by_2_fwd_inputs.throttle_percent / 100.0f) * (tau_by_2_fwd_inputs.tauMaxLimit_Nm);
 
+			// if AC current limit is pulled down then 0 torque cmd also
+			if(tau_by_2_fwd_inputs.ac_currentMaxLimit_Apk <= 0){
+				tau_by_2_fwd_outputs.tauTotalCMD_Nm = 0;
+			}
+
+			per_inverter_tau = tau_by_2_fwd_outputs.tauTotalCMD_Nm / TOTAL_INVERTERS_2WD;
+			tau_by_2_fwd_outputs.tauFL_Nm = per_inverter_tau;
+			tau_by_2_fwd_outputs.tauFR_Nm = per_inverter_tau;
+			tau_by_2_fwd_outputs.tauRL_Nm = 0.0f;
+			tau_by_2_fwd_outputs.tauRR_Nm = 0.0f;
+
+			// Current
+			tau_by_2_fwd_outputs.currentCMDTotal_Apk = clamp(tau_by_2_fwd_outputs.tauTotalCMD_Nm / Kt, 0, 
+														 tau_by_2_fwd_inputs.ac_currentMaxLimit_Apk);
+			
+			per_inverter_current = tau_by_2_fwd_outputs.currentCMDTotal_Apk / TOTAL_INVERTERS_2WD;
+			tau_by_2_fwd_outputs.currentCMDFL_Apk = per_inverter_current;
+			tau_by_2_fwd_outputs.currentCMDFR_Apk = per_inverter_current;
+			tau_by_2_fwd_outputs.currentCMDRL_Apk = 0.0f;
+			tau_by_2_fwd_outputs.currentCMDRR_Apk = 0.0f;
+			break;
+		case TORQUE_BY_2_RWD:
+			// Torque
+			tau_by_2_rwd_outputs.tauTotalCMD_Nm = (tau_by_2_rwd_inputs.throttle_percent / 100.0f) * (tau_by_2_rwd_inputs.tauMaxLimit_Nm);
+
+			// if AC current limit is pulled down then 0 torque cmd also
+			if(tau_by_2_rwd_inputs.ac_currentMaxLimit_Apk <= 0){
+				tau_by_2_rwd_outputs.tauTotalCMD_Nm = 0;
+			}
+
+			per_inverter_tau = tau_by_2_rwd_outputs.tauTotalCMD_Nm / TOTAL_INVERTERS_2WD;
+			tau_by_2_rwd_outputs.tauFL_Nm = 0.0f;
+			tau_by_2_rwd_outputs.tauFR_Nm = 0.0f;
+			tau_by_2_rwd_outputs.tauRL_Nm = per_inverter_tau;
+			tau_by_2_rwd_outputs.tauRR_Nm = per_inverter_tau;
+
+			// Current
+			tau_by_2_rwd_outputs.currentCMDTotal_Apk = clamp(tau_by_2_rwd_outputs.tauTotalCMD_Nm / Kt, 0, 
+														 tau_by_2_rwd_inputs.ac_currentMaxLimit_Apk);
+			
+			per_inverter_current = tau_by_2_rwd_outputs.currentCMDTotal_Apk / TOTAL_INVERTERS_2WD;
+			tau_by_2_rwd_outputs.currentCMDFL_Apk = 0.0f;
+			tau_by_2_rwd_outputs.currentCMDFR_Apk = 0.0f;
+			tau_by_2_rwd_outputs.currentCMDRL_Apk = per_inverter_current;
+			tau_by_2_rwd_outputs.currentCMDRR_Apk = per_inverter_current;
+			break;
 		case TORQUE_BY_4:
 		default:
 			// Torque
@@ -411,7 +526,7 @@ void run_simulink_model_and_update_drive_outputs(){
 				tau_by_4_outputs.tauTotalCMD_Nm = 0;
 			}
 
-			float per_inverter_tau = tau_by_4_outputs.tauTotalCMD_Nm / TOTAL_INVERTERS;
+			per_inverter_tau = tau_by_4_outputs.tauTotalCMD_Nm / TOTAL_INVERTERS;
 			tau_by_4_outputs.tauFL_Nm = per_inverter_tau;
 			tau_by_4_outputs.tauFR_Nm = per_inverter_tau;
 			tau_by_4_outputs.tauRL_Nm = per_inverter_tau;
@@ -421,7 +536,7 @@ void run_simulink_model_and_update_drive_outputs(){
 			tau_by_4_outputs.currentCMDTotal_Apk = clamp(tau_by_4_outputs.tauTotalCMD_Nm / Kt, 0, 
 														 tau_by_4_inputs.ac_currentMaxLimit_Apk);
 			
-			float per_inverter_current = tau_by_4_outputs.currentCMDTotal_Apk / TOTAL_INVERTERS;
+			per_inverter_current = tau_by_4_outputs.currentCMDTotal_Apk / TOTAL_INVERTERS;
 			tau_by_4_outputs.currentCMDFL_Apk = per_inverter_current;
 			tau_by_4_outputs.currentCMDFR_Apk = per_inverter_current;
 			tau_by_4_outputs.currentCMDRL_Apk = per_inverter_current;
@@ -439,37 +554,33 @@ void publish_drive_control_snapshot(){
 	switch (drive_model)
 	{
 		case OPEN_DIFF_NO_PID:
-			zero_tau_by_4_io(&drive_snapshot_local);
-			zero_open_diff_io(&drive_snapshot_local);
-			zero_torque_vectoring_io(&drive_snapshot_local);
-
-			drive_snapshot_local.open_diff_no_pid_control_inputs  = open_diff_no_pid_inputs;
-			drive_snapshot_local.open_diff_no_pid_control_outputs = open_diff_no_pid_outputs;
+			drive_snapshot_local.inputs.OD_no_pid  = open_diff_no_pid_inputs;
+			drive_snapshot_local.outputs.OD_no_pid = open_diff_no_pid_outputs;
 			break;
 
 		case OPEN_DIFF:
-			zero_tau_by_4_io(&drive_snapshot_local);
-			zero_open_diff_no_pid_io(&drive_snapshot_local);
-			zero_torque_vectoring_io(&drive_snapshot_local);
-
-			drive_snapshot_local.open_diff_control_inputs  		  = open_diff_inputs;
-			drive_snapshot_local.open_diff_control_outputs 		  = open_diff_outputs;
+			drive_snapshot_local.inputs.OD  	   = open_diff_inputs;
+			drive_snapshot_local.outputs.OD 	   = open_diff_outputs;
 			break;
 
 		case TORQUE_VECTORING:
-			zero_tau_by_4_io(&drive_snapshot_local);
-			zero_open_diff_no_pid_io(&drive_snapshot_local);
-			zero_open_diff_io(&drive_snapshot_local);
+			// TODO
+			break;
+
+		case TORQUE_BY_2_FWD:
+			drive_snapshot_local.inputs.T_by_2_fwd  = tau_by_2_fwd_inputs;
+			drive_snapshot_local.outputs.T_by_2_fwd = tau_by_2_fwd_outputs;
+			break;
+
+		case TORQUE_BY_2_RWD:
+			drive_snapshot_local.inputs.T_by_2_rwd  = tau_by_2_rwd_inputs;
+			drive_snapshot_local.outputs.T_by_2_rwd = tau_by_2_rwd_outputs;
 			break;
 
 		case TORQUE_BY_4:
 		default:
-			zero_open_diff_no_pid_io(&drive_snapshot_local);
-			zero_open_diff_io(&drive_snapshot_local);
-			zero_torque_vectoring_io(&drive_snapshot_local);
-
-			drive_snapshot_local.tau_by_4_control_inputs 		  = tau_by_4_inputs;
-			drive_snapshot_local.tau_by_4_control_outputs		  = tau_by_4_outputs;
+			drive_snapshot_local.inputs.T_by_4   = tau_by_4_inputs;
+			drive_snapshot_local.outputs.T_by_4  = tau_by_4_outputs;
 			break;
 	}	
 
@@ -483,25 +594,6 @@ void publish_drive_control_snapshot(){
 	drive_snapshot = drive_snapshot_local;
 	osMutexRelease(driveSnapshotMutexHandle);
 
-}
-
-void zero_open_diff_io(DRIVE_CONTROL_SNAPSHOT *snapshot){
-	snapshot->open_diff_control_inputs  = (OPEN_DIFF_INPUTS){0};
-	snapshot->open_diff_control_outputs = (OPEN_DIFF_OUTPUTS){0};
-}
-
-void zero_open_diff_no_pid_io(DRIVE_CONTROL_SNAPSHOT *snapshot){
-	snapshot->open_diff_no_pid_control_inputs  = (OPEN_DIFF_NO_PID_INPUTS){0};
-	snapshot->open_diff_no_pid_control_outputs = (OPEN_DIFF_NO_PID_OUTPUTS){0};
-}
-
-void zero_torque_vectoring_io(DRIVE_CONTROL_SNAPSHOT *snapshot){
-	
-}
-
-void zero_tau_by_4_io(DRIVE_CONTROL_SNAPSHOT *snapshot){
-	snapshot->tau_by_4_control_inputs  = (TORQUE_BY_4_INPUTS){0};
-	snapshot->tau_by_4_control_outputs = (TORQUE_BY_4_OUTPUTS){0};
 }
 
 // ======================================== Inverter/FVC Debug Functions ======================================================
@@ -601,7 +693,7 @@ void update_debug_params(void){
     inv1_debug_params[9] = 0;
 
     // INV2 / FR
-    inv2_debug_params[0] = inputInverterVoltage_FL_V.info.last_rx;
+    inv2_debug_params[0] = inputInverterVoltage_FR_V.info.last_rx;
     inv2_debug_params[1] = motorCurrent_FR_Apk.info.last_rx;
     inv2_debug_params[2] = controllerTemp_FR_C.info.last_rx;
     inv2_debug_params[3] = iqPeak_FR_A.info.last_rx;
@@ -613,7 +705,7 @@ void update_debug_params(void){
     inv2_debug_params[9] = 0;
 
     // INV3 / RL
-    inv3_debug_params[0] = inputInverterVoltage_FL_V.info.last_rx;
+    inv3_debug_params[0] = inputInverterVoltage_RL_V.info.last_rx;
     inv3_debug_params[1] = motorCurrent_RL_Apk.info.last_rx;
     inv3_debug_params[2] = controllerTemp_RL_C.info.last_rx;
     inv3_debug_params[3] = iqPeak_RL_A.info.last_rx;
@@ -625,7 +717,7 @@ void update_debug_params(void){
     inv3_debug_params[9] = 0;
 
     // INV4 / RR
-    inv4_debug_params[0] = inputInverterVoltage_FL_V.info.last_rx;
+    inv4_debug_params[0] = inputInverterVoltage_RR_V.info.last_rx;
     inv4_debug_params[1] = motorCurrent_RR_Apk.info.last_rx;
     inv4_debug_params[2] = controllerTemp_RR_C.info.last_rx;
     inv4_debug_params[3] = iqPeak_RR_A.info.last_rx;
