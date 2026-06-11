@@ -255,21 +255,28 @@ void run_simulink_model_and_update_drive_outputs(){
 		case TORQUE_BY_4:
 		default:
 			// Torque
-			tau_by_4_outputs.tauTotalCMD_Nm = (tau_by_4_inputs.throttle_percent) * (tau_by_4_inputs.tauMaxLimit_Nm);
-			tau_by_4_outputs.tauTotalCMD_Nm = fmaxf(tau_by_4_outputs.tauTotalCMD_Nm, tau_by_4_inputs.tauMaxLimit_Nm);
+			tau_by_4_outputs.tauTotalCMD_Nm = (tau_by_4_inputs.throttle_percent / 100.0f) * (tau_by_4_inputs.tauMaxLimit_Nm);
 
-			tau_by_4_outputs.tauFL_Nm = tau_by_4_outputs.tauTotalCMD_Nm / TOTAL_INVERTERS;
-			tau_by_4_outputs.tauFR_Nm = tau_by_4_outputs.tauFL_Nm;
-			tau_by_4_outputs.tauRL_Nm = tau_by_4_outputs.tauFL_Nm;
-			tau_by_4_outputs.tauRR_Nm = tau_by_4_outputs.tauFL_Nm;
+			// if DC current limit is pulled down then 0 torque cmd also
+			if(tau_by_4_inputs.ac_currentMaxLimit_Apk <= 0){
+				tau_by_4_outputs.tauTotalCMD_Nm = 0;
+			}
+
+			float per_inverter_tau = tau_by_4_outputs.tauTotalCMD_Nm / TOTAL_INVERTERS;
+			tau_by_4_outputs.tauFL_Nm = per_inverter_tau;
+			tau_by_4_outputs.tauFR_Nm = per_inverter_tau;
+			tau_by_4_outputs.tauRL_Nm = per_inverter_tau;
+			tau_by_4_outputs.tauRR_Nm = per_inverter_tau;
 
 			// Current
-			tau_by_4_outputs.currentCMDTotal_Apk = fmaxf(tau_by_4_outputs.tauTotalCMD_Nm / Kt, 
+			tau_by_4_outputs.currentCMDTotal_Apk = clamp(tau_by_4_outputs.tauTotalCMD_Nm / Kt, 0, 
 														 tau_by_4_inputs.ac_currentMaxLimit_Apk);
-			tau_by_4_outputs.currentCMDFL_Apk = tau_by_4_outputs.currentCMDTotal_Apk / TOTAL_INVERTERS;
-			tau_by_4_outputs.currentCMDFR_Apk = tau_by_4_outputs.currentCMDFL_Apk;
-			tau_by_4_outputs.currentCMDRL_Apk = tau_by_4_outputs.currentCMDFL_Apk;
-			tau_by_4_outputs.currentCMDRR_Apk = tau_by_4_outputs.currentCMDFL_Apk;
+			
+			float per_inverter_current = tau_by_4_outputs.currentCMDTotal_Apk / TOTAL_INVERTERS;
+			tau_by_4_outputs.currentCMDFL_Apk = per_inverter_current;
+			tau_by_4_outputs.currentCMDFR_Apk = per_inverter_current;
+			tau_by_4_outputs.currentCMDRL_Apk = per_inverter_current;
+			tau_by_4_outputs.currentCMDRR_Apk = per_inverter_current;
 			break;
 	}
 
