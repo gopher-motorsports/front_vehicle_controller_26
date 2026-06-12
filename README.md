@@ -37,6 +37,8 @@ It is the persistent source of truth for branch enum numbering.
 | 19 | `FEATURE_TORQUE_BY_4` | `FEATURE` | `feature-Torque-By-4` |
 | 20 | `BUGFIX_CHANGE_INVERTER_IDS` | `OTHER` | `bugfix-Change-Inverter-Ids` |
 | 21 | `FEATURE_INS_LOCKOUT` | `FEATURE` | `feature-INS-Lockout` |
+| 22 | `FEATURE_DSP_LOWPASS_FILTERING` | `FEATURE` | `feature-DSP-Lowpass-Filtering` |
+| 23 | `FEATURE_TORQUE_BY_2` | `FEATURE` | `feature-Torque-By-2` |
 
 ## Notes
 

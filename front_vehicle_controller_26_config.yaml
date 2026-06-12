@@ -56,7 +56,7 @@ buckets:
                 samples_buffered: 1
             fvcSteeringAngle_deg:
                 ADC: ADC1_IN2
-                sensor: steering_angle_sensor
+                sensor: steering_angle_sensor_26
                 samples_buffered: 1
             fvcSteeringAngleFilt_deg:
                 ADC: NON_ADC
