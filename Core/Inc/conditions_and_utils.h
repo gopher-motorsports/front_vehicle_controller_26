@@ -3,6 +3,22 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <math.h>
+
+typedef struct
+{
+    float cutoff_freq_Hz;   // Lowpass cutoff frequency
+    float sample_time_s;    // Time step between filter updates
+    float alpha;            // Filter coefficient
+
+    float prev_output;      // Previous filtered value
+    bool initialized;       // Prevents startup transient
+} LOWPASS_FILTER;
+
+#define THROTTLE_CUTOFF_FREQ_Hz       10
+#define STEERING_ANGLE_CUTOFF_FREQ_Hz 10
+#define WHEEL_SPEED_CUTOFF_FREQ_Hz    25
+#define SENSOR_SAMPLE_TIME_ms         0.005         
 
 // LED Code
 #define HBEAT_LED_DELAY_TIME_ms 500
@@ -33,5 +49,18 @@ void init_git_LEDs();
 // Drive Speed/Model Modes
 void determine_drive_speed_mode();
 void determine_drive_model();
+
+// Filtering
+float LPF_compute_alpha(float cutoff_freq_Hz, float sample_time_s);
+void  LPF_init(LOWPASS_FILTER *filter, float cutoff_freq_Hz, float sample_time_s);
+float LPF(LOWPASS_FILTER *filter, float input);
+
+extern LOWPASS_FILTER APPS1_LPF;
+extern LOWPASS_FILTER APPS2_LPF;
+extern LOWPASS_FILTER speed_LPF_FL;
+extern LOWPASS_FILTER speed_LPF_FR;
+extern LOWPASS_FILTER speed_LPF_RL;
+extern LOWPASS_FILTER speed_LPF_RR;
+extern LOWPASS_FILTER steering_angle_LPF;
 
 #endif /* INC_CONDITIONS_AND_UTILS_H_ */

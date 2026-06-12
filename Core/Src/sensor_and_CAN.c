@@ -8,14 +8,17 @@
 
 void update_non_ADC_CAN_params(){
 	// ADC Params Automatically Queued via gophersense
-
 	//High Frequency(200Hz): Wheel Speeds, Shocks(ADC)
 	FVC_DRIVE_SENSOR_DATA fvc_drive_sensor_data_local; // Telemetry Task is producer of wheels speed/throttle sensor data
-	fvc_drive_sensor_data_local.wheel_speed_FL = calc_wheel_m_per_s(electricalRPM_FL_erpm.data);
-	fvc_drive_sensor_data_local.wheel_speed_FR = calc_wheel_m_per_s(electricalRPM_FR_erpm.data);
-	fvc_drive_sensor_data_local.wheel_speed_RL = calc_wheel_m_per_s(electricalRPM_RL_erpm.data);
-	fvc_drive_sensor_data_local.wheel_speed_RR = calc_wheel_m_per_s(electricalRPM_RR_erpm.data);
-	fvc_drive_sensor_data_local.throttle_percent = calc_pedal_percent(fvcPedalPosition1_mm.data, APPS_1_MIN_CURRENT_POS_mm, APPS_1_TOTAL_TRAVEL_mm);
+	fvc_drive_sensor_data_local.wheel_speed_FL   = LPF(&speed_LPF_FL, calc_wheel_m_per_s(electricalRPM_FL_erpm.data));
+	fvc_drive_sensor_data_local.wheel_speed_FR   = LPF(&speed_LPF_FL, calc_wheel_m_per_s(electricalRPM_FR_erpm.data));
+	fvc_drive_sensor_data_local.wheel_speed_RL   = LPF(&speed_LPF_FL, calc_wheel_m_per_s(electricalRPM_RL_erpm.data));
+	fvc_drive_sensor_data_local.wheel_speed_RR   = LPF(&speed_LPF_FL, calc_wheel_m_per_s(electricalRPM_RR_erpm.data));
+	fvc_drive_sensor_data_local.throttle_percent = LPF(&APPS1_LPF, calc_pedal_percent(fvcPedalPosition1_mm.data, 
+											   APPS_1_MIN_CURRENT_POS_mm, 
+											   APPS_1_TOTAL_TRAVEL_mm));
+	fvc_drive_sensor_data_local.steering_angle   = LPF(&steering_angle_LPF, fvcSteeringAngle_deg.data);
+	
 
 	osMutexWait(fvcDriveSensorsMutexHandle, osWaitForever);
 	fvc_drive_sensor_data_global = fvc_drive_sensor_data_local;
@@ -30,7 +33,10 @@ void update_non_ADC_CAN_params(){
 	// Medium Frequency(100Hz): 
 	// Pedal Pos(ADC), Pedal %, Steer Angle(ADC), Vehicle State, Controls Timestep, Slip %, Slip Statuses, Tau Cmd, Wheel Tau, Current Cmd, Inverter Cmds
 	update_and_queue_param_float(&fvcPedalPosition1_percent, fvc_drive_sensor_data_local.throttle_percent);
-	update_and_queue_param_float(&fvcPedalPosition2_percent, calc_pedal_percent(fvcPedalPosition2_mm.data, APPS_2_MIN_CURRENT_POS_mm, APPS_2_TOTAL_TRAVEL_mm));
+	float pedalPosPercent_2 = calc_pedal_percent(fvcPedalPosition2_mm.data, APPS_2_MIN_CURRENT_POS_mm, APPS_2_TOTAL_TRAVEL_mm);
+	pedalPosPercent_2 = LPF(&APPS2_LPF, pedalPosPercent_2);
+	update_and_queue_param_float(&fvcPedalPosition2_percent, pedalPosPercent_2);
+	update_and_queue_param_float(&fvcSteeringAngleFilt_deg, fvc_drive_sensor_data_local.steering_angle);
 
 	// Snapshot of Recent Controls Timestep
 	update_drive_control_can_params();
@@ -82,7 +88,7 @@ void update_non_ADC_CAN_params(){
 	//update_and_queue_param_u32(&fvcGitHash_decimal, CURRENT_GIT_HASH_DECIMAL);
 	//update_and_queue_param_u8(&fvcGitHasUncommitedChanges, CURRENT_GIT_HAS_CHANGES);
 	//update_and_queue_param_u16(&fvcGitTotalUncommitedChanges, CURRENT_GIT_CHANGES_COUNT);
-
+	
 }
 //drive_snap_loc.drive_enable_state;	
 void update_drive_control_can_params(){
