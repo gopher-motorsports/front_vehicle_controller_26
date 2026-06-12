@@ -140,6 +140,7 @@ typedef struct {
 	float wheel_speed_RL;
 	float wheel_speed_RR;
 	float throttle_percent;
+	float steering_angle;
 } FVC_DRIVE_SENSOR_DATA;
 
 typedef struct {

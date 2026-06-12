@@ -14,6 +14,15 @@ U8_CAN_STRUCT *inv_fault_codes[]         = {&faultCode_FL, &faultCode_FR, &fault
 // Status Defines
 bool Hbeat_LED_status = OFF;
 
+// Lowpass Filter
+LOWPASS_FILTER APPS1_LPF;
+LOWPASS_FILTER APPS2_LPF;
+LOWPASS_FILTER speed_LPF_FL;
+LOWPASS_FILTER speed_LPF_FR;
+LOWPASS_FILTER speed_LPF_RL;
+LOWPASS_FILTER speed_LPF_RR;
+LOWPASS_FILTER steering_angle_LPF;
+
 // ========================================LED Functions======================================================
 //Heartbeat LED
 void hbeat_blink(){
@@ -279,4 +288,51 @@ void determine_drive_model(){
     }
 
     last_button_press = DRIVE_MODEL_BUTTON.data;
+}
+
+// Lowpass Filtering
+float LPF_compute_alpha(float cutoff_freq_Hz, float sample_time_s){
+    if (cutoff_freq_Hz <= 0.0f || sample_time_s <= 0.0f)
+    {
+        return 1.0f; // No filtering / passthrough fallback
+    }
+
+    float tau = 1.0f / (2.0f * (float)M_PI * cutoff_freq_Hz);
+
+    return sample_time_s / (tau + sample_time_s);
+}
+
+void LPF_init(LOWPASS_FILTER *filter, float cutoff_freq_Hz, float sample_time_s){
+    if (filter == NULL)
+    {
+        return;
+    }
+
+    filter->cutoff_freq_Hz = cutoff_freq_Hz;
+    filter->sample_time_s  = sample_time_s;
+    filter->alpha = LPF_compute_alpha(cutoff_freq_Hz, sample_time_s);
+
+    filter->prev_output = 0.0f;
+    filter->initialized = false;
+}
+
+float LPF(LOWPASS_FILTER *filter, float input){
+    if (filter == NULL)
+    {
+        return input;
+    }
+
+    if (!filter->initialized)
+    {
+        filter->prev_output = input;
+        filter->initialized = true;
+        return input;
+    }
+
+    float output = filter->alpha * input
+                 + (1.0f - filter->alpha) * filter->prev_output;
+
+    filter->prev_output = output;
+
+    return output;
 }

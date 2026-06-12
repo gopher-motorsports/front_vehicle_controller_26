@@ -102,7 +102,8 @@ OPEN_DIFF_INPUTS open_diff_inputs = {
 		.wheel_speed_FR = 0.0,
 		.wheel_speed_RL = 0.0,
 		.wheel_speed_RR = 0.0,
-		.throttle_percent = 0.0
+		.throttle_percent = 0.0,
+		.steering_angle = 0.0
 	},
 	.tauMaxLimit_Nm = TOTAL_TORQUE_LIMIT_Nm,
 	.ac_currentMaxLimit_Apk = 0.0,
@@ -139,7 +140,8 @@ OPEN_DIFF_NO_PID_INPUTS  open_diff_no_pid_inputs = {
 		.wheel_speed_FR = 0.0,
 		.wheel_speed_RL = 0.0,
 		.wheel_speed_RR = 0.0,
-		.throttle_percent = 0.0
+		.throttle_percent = 0.0,
+		.steering_angle = 0.0
 	},
 	.tauMaxLimit_Nm = TOTAL_TORQUE_LIMIT_Nm,
 	.ac_currentMaxLimit_Apk = 0.0,
@@ -192,6 +194,16 @@ void init_fvc(CAN_HandleTypeDef* BUS_1, CAN_HandleTypeDef* BUS_2, CAN_HandleType
 
 	// Drive Model Inits
 	open_differential_initialize();
+
+	// Lowpass Filter Inits
+	LPF_init(&APPS1_LPF, 		  THROTTLE_CUTOFF_FREQ_Hz, 		 SENSOR_SAMPLE_TIME_ms);
+	LPF_init(&APPS2_LPF, 		  THROTTLE_CUTOFF_FREQ_Hz, 		 SENSOR_SAMPLE_TIME_ms);
+	LPF_init(&speed_LPF_FL, 	  WHEEL_SPEED_CUTOFF_FREQ_Hz, 	 SENSOR_SAMPLE_TIME_ms);
+	LPF_init(&speed_LPF_FR, 	  WHEEL_SPEED_CUTOFF_FREQ_Hz, 	 SENSOR_SAMPLE_TIME_ms);
+	LPF_init(&speed_LPF_RL, 	  WHEEL_SPEED_CUTOFF_FREQ_Hz, 	 SENSOR_SAMPLE_TIME_ms);
+	LPF_init(&speed_LPF_RR, 	  WHEEL_SPEED_CUTOFF_FREQ_Hz, 	 SENSOR_SAMPLE_TIME_ms);
+	LPF_init(&steering_angle_LPF, STEERING_ANGLE_CUTOFF_FREQ_Hz, SENSOR_SAMPLE_TIME_ms);
+
 }
 
 
