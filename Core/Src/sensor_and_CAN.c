@@ -15,7 +15,7 @@ void update_non_ADC_CAN_params(){
 	fvc_drive_sensor_data_local.wheel_speed_RL   = LPF(&speed_LPF_FL, calc_wheel_m_per_s(electricalRPM_RL_erpm.data));
 	fvc_drive_sensor_data_local.wheel_speed_RR   = LPF(&speed_LPF_FL, calc_wheel_m_per_s(electricalRPM_RR_erpm.data));
 	fvc_drive_sensor_data_local.throttle_percent = LPF(&APPS1_LPF, calc_pedal_percent(fvcPedalPosition1_mm.data, 
-											  APPS_1_MIN_CURRENT_POS_mm, 
+											   APPS_1_MIN_CURRENT_POS_mm, 
 											   APPS_1_TOTAL_TRAVEL_mm));
 	fvc_drive_sensor_data_local.steering_angle   = LPF(&steering_angle_LPF, fvcSteeringAngle_deg.data);
 	
