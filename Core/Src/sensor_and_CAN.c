@@ -199,7 +199,7 @@ void update_drive_control_can_params(){
 										drive_snap_loc.drive_enable_state, TRUE, FALSE);
 				break;
 
-			case TORQUE_BY_2_RWD:
+			case TORQUE_BY_2_RWD_RL:
 				// Total Commands
 				update_and_queue_param_float(&fvcTauTotalCMD_Nm,      drive_snap_loc.outputs.T_by_2_rwd.tauTotalCMD_Nm);
 				update_and_queue_param_float(&fvcCurrentTotalCMD_Apk, drive_snap_loc.outputs.T_by_2_rwd.currentCMDTotal_Apk);
@@ -211,15 +211,15 @@ void update_drive_control_can_params(){
 										drive_snap_loc.outputs.T_by_2_rwd.tauRR_Nm);
 
 				// Inverter Params
-				inv_dc_max_curr = drive_snap_loc.inputs.T_by_2_rwd.dc_currentMaxlimit_A   / TOTAL_INVERTERS_2WD;
+				inv_dc_max_curr = drive_snap_loc.inputs.T_by_2_rwd.dc_currentMaxlimit_A;
 				inv_ac_max_curr = drive_snap_loc.inputs.T_by_2_rwd.ac_currentMaxLimit_Apk / 4; // Still 4 as each inverter can only do 120 Apk
 
-				update_inverter_can_params(drive_snap_loc.outputs.T_by_2_rwd.currentCMDFL_Apk,
-										drive_snap_loc.outputs.T_by_2_rwd.currentCMDFR_Apk,
+				update_inverter_can_params(0.0f,
+										0.0f,
 										drive_snap_loc.outputs.T_by_2_rwd.currentCMDRL_Apk,
-										drive_snap_loc.outputs.T_by_2_rwd.currentCMDRR_Apk,
-										0.0f, 0.0f, inv_ac_max_curr, inv_ac_max_curr,
-										0.0f, 0.0f, inv_dc_max_curr, inv_dc_max_curr,
+										0.0f,
+										0.0f, 0.0f, inv_ac_max_curr, 0.0f,
+										0.0f, 0.0f, inv_dc_max_curr, 0.0f,
 										drive_snap_loc.drive_enable_state, FALSE, TRUE);
 				break;
 
@@ -295,10 +295,11 @@ void update_inverter_can_params(float ac_cmd_FL, float ac_cmd_FR, float ac_cmd_R
 		invDriveEnable_RR_state.data = FALSE;
 	}
 	else if (RWD){
+		// Just RL for this Branch
 		invDriveEnable_FL_state.data = FALSE;
 		invDriveEnable_FR_state.data = FALSE;
 		invDriveEnable_RL_state.data = drive_enable;
-		invDriveEnable_RR_state.data = drive_enable;
+		invDriveEnable_RR_state.data = FALSE;
 	}
 	else{
 		invDriveEnable_FL_state.data = drive_enable;
@@ -308,25 +309,25 @@ void update_inverter_can_params(float ac_cmd_FL, float ac_cmd_FR, float ac_cmd_R
 	}
 
 	// Send all Params
-	send_group(invCurrentCmd_FL_Apk.info.GROUP_ID);
-	send_group(invCurrentCmd_FR_Apk.info.GROUP_ID);
+	// send_group(invCurrentCmd_FL_Apk.info.GROUP_ID);
+	// send_group(invCurrentCmd_FR_Apk.info.GROUP_ID);
 	send_group(invCurrentCmd_RL_Apk.info.GROUP_ID);
-	send_group(invCurrentCmd_RR_Apk.info.GROUP_ID);
+	// send_group(invCurrentCmd_RR_Apk.info.GROUP_ID);
 
-	send_group(invMaxCurrentLimitCmd_FL_Apk.info.GROUP_ID);
-	send_group(invMaxCurrentLimitCmd_FR_Apk.info.GROUP_ID);
+	// send_group(invMaxCurrentLimitCmd_FL_Apk.info.GROUP_ID);
+	// send_group(invMaxCurrentLimitCmd_FR_Apk.info.GROUP_ID);
 	send_group(invMaxCurrentLimitCmd_RL_Apk.info.GROUP_ID);
-	send_group(invMaxCurrentLimitCmd_RR_Apk.info.GROUP_ID);
+	// send_group(invMaxCurrentLimitCmd_RR_Apk.info.GROUP_ID);
 
-	send_group(invMaxDCCurrentLimitCmd_FL_A.info.GROUP_ID);
-	send_group(invMaxDCCurrentLimitCmd_FR_A.info.GROUP_ID);
+	// send_group(invMaxDCCurrentLimitCmd_FL_A.info.GROUP_ID);
+	// send_group(invMaxDCCurrentLimitCmd_FR_A.info.GROUP_ID);
 	send_group(invMaxDCCurrentLimitCmd_RL_A.info.GROUP_ID);
-	send_group(invMaxDCCurrentLimitCmd_RR_A.info.GROUP_ID);
+	// send_group(invMaxDCCurrentLimitCmd_RR_A.info.GROUP_ID);
 
-	send_group(invDriveEnable_FL_state.info.GROUP_ID);
-	send_group(invDriveEnable_FR_state.info.GROUP_ID);
+	// send_group(invDriveEnable_FL_state.info.GROUP_ID);
+	// send_group(invDriveEnable_FR_state.info.GROUP_ID);
 	send_group(invDriveEnable_RL_state.info.GROUP_ID);
-	send_group(invDriveEnable_RR_state.info.GROUP_ID);
+	// send_group(invDriveEnable_RR_state.info.GROUP_ID);
 
 }
 

@@ -28,7 +28,7 @@ DRIVE_CONTROL_SNAPSHOT drive_snapshot;
 
 bool all_inverter_enable; // enable for all 4 inverters in this case
 DRIVE_SPEED_MODE_t drive_speed_mode = FULL_POWER;
-DRIVE_MODEL_MODES_t drive_model     = TORQUE_BY_4;
+DRIVE_MODEL_MODES_t drive_model     = TORQUE_BY_2_RWD_RL;
 
 TORQUE_BY_4_INPUTS tau_by_2_fwd_inputs = {
 	.throttle_percent = 0.0,
@@ -52,7 +52,7 @@ TORQUE_BY_4_OUTPUTS tau_by_2_fwd_outputs = {
 
 TORQUE_BY_4_INPUTS tau_by_2_rwd_inputs = {
 	.throttle_percent = 0.0,
-	.tauMaxLimit_Nm = TOTAL_TORQUE_LIMIT_2WD_Nm,
+	.tauMaxLimit_Nm = TOTAL_TORQUE_LIMIT_1WD_Nm,
 	.ac_currentMaxLimit_Apk = 0.0,
 	.dc_currentMaxlimit_A = 0.0
 };
@@ -234,8 +234,8 @@ void debug_task(){
 }
 
 void drive_task(){
-	determine_drive_speed_mode();
-	determine_drive_model();
+	//determine_drive_speed_mode();
+	//determine_drive_model();
 	process_inverter();
 }
 
@@ -366,7 +366,7 @@ void update_drive_inputs(){
 										 &tau_by_2_fwd_inputs.dc_currentMaxlimit_A, &all_inverter_enable);	
 			break;
 
-		case TORQUE_BY_2_RWD:
+		case TORQUE_BY_2_RWD_RL:
 			osMutexWait(fvcDriveSensorsMutexHandle, osWaitForever);
 			tau_by_2_rwd_inputs.throttle_percent = fvc_drive_sensor_data_global.throttle_percent;
 			osMutexRelease(fvcDriveSensorsMutexHandle);
@@ -503,7 +503,7 @@ void run_simulink_model_and_update_drive_outputs(){
 			tau_by_2_fwd_outputs.currentCMDRL_Apk = 0.0f;
 			tau_by_2_fwd_outputs.currentCMDRR_Apk = 0.0f;
 			break;
-		case TORQUE_BY_2_RWD:
+		case TORQUE_BY_2_RWD_RL:
 			// Torque
 			tau_by_2_rwd_outputs.tauTotalCMD_Nm = (tau_by_2_rwd_inputs.throttle_percent / 100.0f) * (tau_by_2_rwd_inputs.tauMaxLimit_Nm);
 
@@ -512,21 +512,19 @@ void run_simulink_model_and_update_drive_outputs(){
 				tau_by_2_rwd_outputs.tauTotalCMD_Nm = 0;
 			}
 
-			per_inverter_tau = tau_by_2_rwd_outputs.tauTotalCMD_Nm / TOTAL_INVERTERS_2WD;
 			tau_by_2_rwd_outputs.tauFL_Nm = 0.0f;
 			tau_by_2_rwd_outputs.tauFR_Nm = 0.0f;
-			tau_by_2_rwd_outputs.tauRL_Nm = per_inverter_tau;
-			tau_by_2_rwd_outputs.tauRR_Nm = per_inverter_tau;
+			tau_by_2_rwd_outputs.tauRL_Nm = tau_by_2_rwd_outputs.tauTotalCMD_Nm;
+			tau_by_2_rwd_outputs.tauRR_Nm = 0.0f;
 
 			// Current
 			tau_by_2_rwd_outputs.currentCMDTotal_Apk = clamp(tau_by_2_rwd_outputs.tauTotalCMD_Nm / Kt, 0, 
 														 tau_by_2_rwd_inputs.ac_currentMaxLimit_Apk);
 			
-			per_inverter_current = tau_by_2_rwd_outputs.currentCMDTotal_Apk / TOTAL_INVERTERS_2WD;
 			tau_by_2_rwd_outputs.currentCMDFL_Apk = 0.0f;
 			tau_by_2_rwd_outputs.currentCMDFR_Apk = 0.0f;
-			tau_by_2_rwd_outputs.currentCMDRL_Apk = per_inverter_current;
-			tau_by_2_rwd_outputs.currentCMDRR_Apk = per_inverter_current;
+			tau_by_2_rwd_outputs.currentCMDRL_Apk = tau_by_2_rwd_outputs.currentCMDTotal_Apk;
+			tau_by_2_rwd_outputs.currentCMDRR_Apk = 0.0f;
 			break;
 		case TORQUE_BY_4:
 		default:
@@ -584,7 +582,7 @@ void publish_drive_control_snapshot(){
 			drive_snapshot_local.outputs.T_by_2_fwd = tau_by_2_fwd_outputs;
 			break;
 
-		case TORQUE_BY_2_RWD:
+		case TORQUE_BY_2_RWD_RL:
 			drive_snapshot_local.inputs.T_by_2_rwd  = tau_by_2_rwd_inputs;
 			drive_snapshot_local.outputs.T_by_2_rwd = tau_by_2_rwd_outputs;
 			break;

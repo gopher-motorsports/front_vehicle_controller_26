@@ -160,10 +160,8 @@ bool has_inverter_comms(){
 	uint32_t time_stamp = HAL_GetTick();
 	bool has_comms = TRUE;
 
-	for(int i = 0; i < TOTAL_INVERTERS; i++){
-		if (time_stamp - inv_enable_fbk_statuses[i]->info.last_rx >= INVERTER_TIMEOUT_ms)
+	if (time_stamp - driveEnableInvStatus_RL_state.info.last_rx >= INVERTER_TIMEOUT_ms)
 			has_comms = FALSE;
-	}
 
 	return has_comms;
 }
@@ -219,7 +217,7 @@ void determine_drive_model(){
     static const DRIVE_MODEL_MODES_t gnss_fixed_modes[] = {
         TORQUE_BY_4,
         TORQUE_BY_2_FWD,
-        TORQUE_BY_2_RWD,
+        TORQUE_BY_2_RWD_RL,
         OPEN_DIFF_NO_PID,
         OPEN_DIFF,
         TORQUE_VECTORING
@@ -228,7 +226,7 @@ void determine_drive_model(){
     static const DRIVE_MODEL_MODES_t gnss_not_fixed_modes[] = {
         TORQUE_BY_4,
         TORQUE_BY_2_FWD,
-        TORQUE_BY_2_RWD
+        TORQUE_BY_2_RWD_RL
     };
 
     boolean GNSS_fixed = (vnavINS_status.data & (1 << 2)) > 0;

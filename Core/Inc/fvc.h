@@ -42,6 +42,7 @@
 #define MOTOR_MAX_TORQUE_Nm	  		30.84 // 120 Apk * .257 = 30.84Nm
 #define TOTAL_TORQUE_LIMIT_Nm		MOTOR_MAX_TORQUE_Nm * 4
 #define TOTAL_TORQUE_LIMIT_2WD_Nm   MOTOR_MAX_TORQUE_Nm * 2
+#define TOTAL_TORQUE_LIMIT_1WD_Nm	MOTOR_MAX_TORQUE_Nm * 1
 // ============================= CAR PARAMS =============================
 //Thresholds for "fvc.software_faults.c" 
 #define INPUT_TRIP_DELAY_ms   85     // The amount of time it takes an input fault to take effect, margin from 100
@@ -64,7 +65,7 @@
 #define APPS_BRAKE_PRESS_THRESH_psi  100.0f //6.25% of brake pressure = mechanical breaks engaged
 
 // ============================= INVERTER PARAMS =============================
-#define INVERTER_TIMEOUT_ms     2000    // Amount of time before inverter times out, enable must ping it twice as fast, Set in DTI Can Tool
+#define INVERTER_TIMEOUT_ms     1000    // Amount of time before inverter times out, enable must ping it twice as fast, Set in DTI Can Tool
 
 //Ready to Drive
 #define PREDRIVE_BUTTON_PARAM      swButon4_state
@@ -122,7 +123,7 @@ typedef enum
 	OPEN_DIFF        	= 2,
 	TORQUE_VECTORING 	= 3,
 	TORQUE_BY_2_FWD     = 4,
-	TORQUE_BY_2_RWD     = 5
+	TORQUE_BY_2_RWD_RL  = 5
 } DRIVE_MODEL_MODES_t;
 
 typedef enum
