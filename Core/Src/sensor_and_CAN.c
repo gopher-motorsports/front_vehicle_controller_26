@@ -236,7 +236,7 @@ void update_drive_control_can_params(){
 										drive_snap_loc.outputs.T_by_4.tauRR_Nm);
 
 				// Inverter Params
-				inv_dc_max_curr = drive_snap_loc.inputs.T_by_4.dc_currentMaxlimit_A   / 4;
+				inv_dc_max_curr = 50.0f;
 				inv_ac_max_curr = drive_snap_loc.inputs.T_by_4.ac_currentMaxLimit_Apk / 4;
 
 				update_inverter_can_params(drive_snap_loc.outputs.T_by_4.currentCMDFL_Apk,
