@@ -114,7 +114,7 @@ float calculate_dc_current_limit(){
 			dc_current_limit_A = DC_CURRENT_LIMIT_AT_MAX_PACK_VOLTAGE_A;
 	}
 
-	return clamp(0, dc_current_limit_A, 50.0f);
+	return clamp(dc_current_limit_A, 0, 100.0f);
 }
 
 // AC Current Limit Calculation

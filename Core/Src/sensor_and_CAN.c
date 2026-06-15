@@ -211,7 +211,7 @@ void update_drive_control_can_params(){
 										drive_snap_loc.outputs.T_by_2_rwd.tauRR_Nm);
 
 				// Inverter Params
-				inv_dc_max_curr = 50.0f;
+				inv_dc_max_curr = drive_snap_loc.inputs.T_by_2_rwd.dc_currentMaxlimit_A;
 				inv_ac_max_curr = drive_snap_loc.inputs.T_by_2_rwd.ac_currentMaxLimit_Apk / 4; // Still 4 as each inverter can only do 120 Apk
 
 				update_inverter_can_params(0.0f,
