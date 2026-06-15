@@ -68,7 +68,7 @@
 #define INVERTER_TIMEOUT_ms     1000    // Amount of time before inverter times out, enable must ping it twice as fast, Set in DTI Can Tool
 
 //Ready to Drive
-#define PREDRIVE_BUTTON_PARAM      swButon4_state
+#define PREDRIVE_BUTTON_PARAM      swButon0_state
 #define PREDRIVE_TIME_ms           2000 // The length of predrive in ms
 #define PREDRIVE_BRAKE_THRESH_psi  20.0f  // The minimum brake pressure to enter the driving state
 #define TS_ON_THRESHOLD_VOLTAGE_V  60.0f  // Minimum pack voltage to enter driving TODO replace with 420V?

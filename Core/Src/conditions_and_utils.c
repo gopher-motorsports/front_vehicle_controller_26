@@ -160,9 +160,9 @@ bool has_inverter_comms(){
 	uint32_t time_stamp = HAL_GetTick();
 	bool has_comms = TRUE;
 
-	if (time_stamp - driveEnableInvStatus_RL_state.info.last_rx >= INVERTER_TIMEOUT_ms)
-			has_comms = FALSE;
-
+	if (time_stamp - driveEnableInvStatus_RL_state.info.last_rx >= INVERTER_TIMEOUT_ms){
+		has_comms = FALSE;
+	}
 	return has_comms;
 }
 
