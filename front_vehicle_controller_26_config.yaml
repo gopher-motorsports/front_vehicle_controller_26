@@ -142,6 +142,11 @@ buckets:
                 sensor: NON_ADC
                 samples_buffered: 1
 
+            fvcInputInverterVoltage_RL_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+                
     low_freqeuncy:
         frequency_hz: 5
         parameters:

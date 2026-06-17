@@ -37,7 +37,7 @@ void update_non_ADC_CAN_params(){
 	pedalPosPercent_2 = LPF(&APPS2_LPF, pedalPosPercent_2);
 	update_and_queue_param_float(&fvcPedalPosition2_percent, pedalPosPercent_2);
 	update_and_queue_param_float(&fvcSteeringAngleFilt_deg, fvc_drive_sensor_data_local.steering_angle);
-
+	update_and_queue_param_u16(&fvcInputInverterVoltage_RL_V, inputInverterVoltage_RL_V.data);
 	// Snapshot of Recent Controls Timestep
 	update_drive_control_can_params();
 
